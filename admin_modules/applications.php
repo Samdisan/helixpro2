@@ -9,10 +9,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $apps = array_values(array_filter($apps, fn($a) => $a['id'] !== $_POST['target_id']));
     } elseif ($_POST['action'] === 'approve') {
         $approvedRolePref = null;
+        $approvedFaction = null;
         foreach ($apps as &$a) {
             if ($a['id'] === $_POST['target_id']) {
                 $a['status'] = 'APPROVED';
                 $approvedRolePref = isset($a['role_pref']) ? trim($a['role_pref']) : null;
+                $approvedFaction = isset($a['faction_pref']) ? trim($a['faction_pref']) : null;
                 break;
             }
         }
@@ -21,14 +23,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $usersFile = dirname(__DIR__) . '/users.json';
             if (file_exists($usersFile)) {
                 $users = getJson($usersFile);
+                $roleFound = false;
                 foreach ($users as $i => $u) {
+                    // Пропускаємо адмінів та гейммайстрів
                     if (($u['role'] ?? '') === 'GAMEMASTER' || ($u['chapter'] ?? '') === 'admin') continue;
+                    
+                    // Формуємо слот-лейбл у форматі "РОЛЬ (ІМ'Я)"
                     $slotLabel = trim(($u['role'] ?? '') . ' (' . ($u['name'] ?? '') . ')');
+                    
+                    // Якщо знайшли збіг - позначаємо роль як зайняту
                     if ($slotLabel === $approvedRolePref) {
                         $users[$i]['booking_status'] = 'taken';
+                        $roleFound = true;
                         saveJson($usersFile, $users);
+                        error_log("[HELIX] Application approved: Role '{$approvedRolePref}' marked as taken");
                         break;
                     }
+                }
+                if (!$roleFound) {
+                    error_log("[HELIX] Warning: Could not find role '{$approvedRolePref}' in users.json");
                 }
             }
         }
@@ -56,6 +69,8 @@ $apps = getJson('applications.json');
             </div>
             
             <div style="margin:10px 0; font-size:0.9rem; color:#aaa;">
+                <strong>FACTION:</strong> <?= htmlspecialchars($a['faction_pref'] ?? '—') ?><br>
+                <strong>ROLE:</strong> <?= htmlspecialchars($a['role_pref'] ?? '—') ?><br>
                 <strong>ANONYMOUS:</strong> <?= !empty($a['anon']) ? 'YES' : 'NO' ?><br>
                 <strong>PSY-PROFILE:</strong> <?= implode(' / ', is_array($a['psy'] ?? null) ? $a['psy'] : []) ?><br>
                 <strong>LORE SCORE:</strong> Q1:<?= (is_array($a['lore'] ?? null) ? ($a['lore']['q1'] ?? '—') : '—') ?> | Q2:<?= (is_array($a['lore'] ?? null) ? ($a['lore']['q2'] ?? '—') : '—') ?>
