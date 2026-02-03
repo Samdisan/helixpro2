@@ -403,6 +403,11 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             loadPersonnelData();
+            // Автоматичне оновлення кешу кожну хвилину
+            setInterval(() => {
+                console.log('[PERSONNEL] Auto-refreshing data...');
+                loadPersonnelData();
+            }, 60000); // 60000ms = 1 хвилина
         });
 
         function renderColumns() {

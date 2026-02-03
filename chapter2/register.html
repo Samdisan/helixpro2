@@ -88,7 +88,7 @@
                 <p style="color:#aaa; margin-bottom:20px;">Відповідайте на питання, щоб продовжити. Після успішного проходження відкриється доступ до K.I.R.A.</p>
                 <div id="lore-test-container" class="lore-test-box"></div>
                 <p id="lore-test-err" class="lore-test-err"></p>
-                <button type="button" class="btn-next" id="btn-lore-submit" style="margin-top:16px;">ПІДТВЕРДИТИ ВІДПОВІДІ</button>
+                <button type="button" class="btn-next" id="btn-lore-submit" onclick="checkLoreTest()" style="margin-top:16px;">ПІДТВЕРДИТИ ВІДПОВІДІ</button>
             </div>
             <div id="step2-test-block" style="display:none; text-align:center;">
                 <h3 style="color:var(--accent-cyan); margin-bottom:16px;">K.I.R.A. — ТЕСТ ПЕРЕД ПОДАННЯМ ЗАЯВКИ</h3>
@@ -350,6 +350,10 @@
                     document.getElementById('step-2').classList.remove('current');
                     document.getElementById('step-3').style.display = 'block';
                     document.getElementById('step-3').classList.add('current');
+                    // Автоматичне перенаправлення на сторінку хабу через 2 секунди
+                    setTimeout(() => {
+                        window.location.href = 'hub.html';
+                    }, 2000);
                 } else {
                     msgEl.textContent = (json && json.error) ? json.error : 'Помилка сервера. Спробуйте ще раз.';
                     msgEl.style.display = 'block';
