@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>HELIX | RECRUITMENT</title>
+    <link rel="stylesheet" href="../style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Courier+New&display=swap" rel="stylesheet">
+    <style>
+        body { background: #000; color: #ccc; font-family: 'Courier New', monospace; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .container { width: 100%; max-width: 600px; padding: 20px; }
+        .step-section { display: none; } .step-section.current { display: block; animation: fadeIn 0.5s; }
+        input, select { width: 100%; background: #0a0a0a; border: 1px solid #333; color: #fff; padding: 15px; margin-bottom: 20px; font-family: inherit; box-sizing: border-box; }
+        input.error { border-color: #f55; }
+        .field-error { font-size: 0.7rem; color: #f55; margin-top: -12px; margin-bottom: 12px; }
+        .btn-next { width: 100%; padding: 20px; border: 1px solid var(--accent-gold); color: var(--accent-gold); background: transparent; cursor: pointer; text-transform: uppercase; font-weight: bold; box-sizing: border-box; }
+        .btn-next:hover { background: var(--accent-gold); color: #000; }
+        .btn-next:disabled { opacity: 0.5; cursor: not-allowed; }
+        .loading-spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid transparent; border-top-color: currentColor; border-radius: 50%; animation: spin 0.8s linear infinite; margin-right: 8px; vertical-align: middle; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1} }
+        .msg-error { color: #f55; margin-top: 12px; font-size: 0.85rem; }
+        .msg-success { color: #0f0; }
+        .lore-quest { background: #0d1117; border: 1px solid #2e3a4a; border-left: 4px solid var(--accent-gold); padding: 16px; margin-bottom: 20px; font-size: 0.9rem; line-height: 1.5; color: #b0b8c4; }
+        .lore-quest .quest-title { color: var(--accent-gold); font-weight: bold; margin-bottom: 8px; }
+        .lore-quest .quest-steps { margin: 0; padding-left: 1.2em; }
+        .lore-test-box { background: #0d1117; border: 1px solid #2e3a4a; padding: 20px; margin-bottom: 20px; }
+        .lore-test-box .q { color: #e0e0e0; margin-bottom: 12px; font-size: 0.95rem; }
+        .lore-test-box .opts { display: flex; flex-direction: column; gap: 8px; }
+        .lore-test-box .opt { background: #111; border: 1px solid #333; color: #ccc; padding: 12px; cursor: pointer; text-align: left; font-family: inherit; }
+        .lore-test-box .opt:hover { border-color: var(--accent-gold); color: var(--accent-gold); }
+        .lore-test-box .opt.selected { border-color: var(--accent-gold); color: var(--accent-gold); }
+        .lore-test-err { color: #f55; font-size: 0.85rem; margin-top: 8px; display: none; }
+        @media (max-width: 480px) {
+            body { padding: 12px; padding-left: max(12px, env(safe-area-inset-left)); padding-right: max(12px, env(safe-area-inset-right)); padding-bottom: env(safe-area-inset-bottom, 0); }
+            .container { padding: 12px; }
+            input, select { padding: 14px; min-height: 44px; margin-bottom: 16px; }
+            .btn-next { padding: 16px; min-height: 48px; font-size: 0.9rem; }
+            h2 { font-size: 1.25rem !important; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2 style="text-align:center; color:#ffd700; font-family:'Cinzel'; margin-bottom:30px;">PROTOCOL APPLICATION</h2>
+
+        <div id="step-1" class="step-section current">
+            <input type="text" id="inp-name" placeholder="CALLSIGN / NAME" maxlength="100">
+            <div id="err-name" class="field-error" style="display:none;"></div>
+            <input type="text" id="inp-tg" placeholder="TELEGRAM (@username або t.me/username)">
+            <div id="err-tg" class="field-error" style="display:none;"></div>
+            
+            <label style="font-size:0.7rem; color:#00f0ff;">SELECT FACTION:</label>
+            <select id="inp-faction" onchange="updateRoles()">
+                <option value="" disabled selected>-- TARGET FACTION --</option>
+                <option value="OLYMPOS">OLYMPOS</option>
+                <option value="ORIGIN">ORIGIN</option>
+                <option value="THEMIS">THEMIS</option>
+                <option value="MOIRAI">МОЙРИ</option>
+            </select>
+
+            <label style="font-size:0.7rem; color:#00f0ff;">SELECT VACANT POSITION:</label>
+            <select id="inp-role-pref" disabled>
+                <option value="" disabled selected>-- WAITING FOR DATA --</option>
+            </select>
+            <div id="err-role" class="field-error" style="display:none;"></div>
+
+            <button type="button" class="btn-next" id="btn-submit" onclick="goToTestStep()">ДАЛІ: ЛОРНИЙ ТЕСТ >></button>
+            <p style="color:#666; font-size:0.75rem; margin-top:10px;">На наступному кроці — спочатку лорний тест, потім K.I.R.A., потім відправка заявки.</p>
+            <p id="submit-msg" class="msg-error" style="display:none;"></p>
+            <div style="text-align:center; margin-top:20px;">
+                <a href="personnel.html" style="color:#666; font-size:0.8rem;">VIEW PERSONNEL DATABASE</a>
+            </div>
+        </div>
+
+        <div id="step-2" class="step-section" style="text-align:left; display:none;">
+            <div class="lore-quest">
+                <div class="quest-title">КВЕСТ: Відкрити доступ</div>
+                <p style="margin:0 0 8px 0;">Система вимагає спочатку верифікації знань всесвіту, потім психопрофілю, потім — подачі заявки.</p>
+                <ol class="quest-steps">
+                    <li>Пройти лорний тест (короткі питання за всесвітом HELIX).</li>
+                    <li>Пройти K.I.R.A. тест (результат буде додано до заявки).</li>
+                    <li>Повернутись сюди і відправити заявку.</li>
+                </ol>
+            </div>
+            <div id="step2-lore-block" style="display:none;">
+                <h3 style="color:var(--accent-gold); margin-bottom:16px;">ЛОРНИЙ ТЕСТ</h3>
+                <p style="color:#aaa; margin-bottom:20px;">Відповідайте на питання, щоб продовжити. Після успішного проходження відкриється доступ до K.I.R.A.</p>
+                <div id="lore-test-container" class="lore-test-box"></div>
+                <p id="lore-test-err" class="lore-test-err"></p>
+                <button type="button" class="btn-next" id="btn-lore-submit" style="margin-top:16px;">ПІДТВЕРДИТИ ВІДПОВІДІ</button>
+            </div>
+            <div id="step2-test-block" style="display:none; text-align:center;">
+                <h3 style="color:var(--accent-cyan); margin-bottom:16px;">K.I.R.A. — ТЕСТ ПЕРЕД ПОДАННЯМ ЗАЯВКИ</h3>
+                <p style="color:#aaa; margin-bottom:24px; line-height:1.5;">Лорний тест пройдено. Тепер — верифікація психопрофілю. Після проходження ви повернетесь сюди для відправки заявки.</p>
+                <a href="test.html?from=register" class="btn-next" style="display:inline-block; text-decoration:none;">ПРОЙТИ K.I.R.A. ТЕСТ</a>
+            </div>
+            <div id="step2-submit-block" style="display:none; text-align:center;">
+                <p id="step2-summary" style="color:#aaa; margin-bottom:16px;"></p>
+                <p style="color:#0a0; font-size:0.85rem; margin-bottom:16px;">Результат K.I.R.A.: <strong id="step2-kira-type" style="color:var(--accent-gold);"></strong></p>
+                <button type="button" class="btn-next" id="btn-send-application" onclick="sendApplication()">ВІДПРАВИТИ ЗАЯВКУ</button>
+                <p id="step2-msg" class="msg-error" style="display:none; margin-top:12px;"></p>
+            </div>
+        </div>
+
+        <div id="step-3" class="step-section" style="text-align:center; display:none;">
+            <h1 id="step3-title" style="color:#0f0;">RECEIVED</h1>
+            <p id="step3-text">Заявку прийнято. Очікуйте підтвердження.</p>
+            <a href="hub.html" class="btn-next" style="display:inline-block; text-decoration:none;">RETURN</a>
+        </div>
+    </div>
+
+    <script>
+        const ERR_MSG = 'Не вдалося завантажити дані. Спробуйте пізніше.';
+        let dbUsers = [];
+
+        function validateTelegram(tg) {
+            if (!tg || !tg.trim()) return true;
+            const v = tg.trim();
+            return /^@[\w]{4,32}$/.test(v) || /^t\.me\/[\w]{4,32}$/i.test(v) || /^[\w]{4,32}$/.test(v);
+        }
+
+        function showFieldError(id, text) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.style.display = text ? 'block' : 'none';
+            el.textContent = text || '';
+        }
+
+        function setInputError(inputId, hasError) {
+            const el = document.getElementById(inputId);
+            if (el) el.classList.toggle('error', !!hasError);
+        }
+
+        const DRAFT_KEY = 'helix_register_draft';
+        const KIRA_KEY = 'helix_kira_application';
+        const LORE_TEST_KEY = 'helix_lore_test_passed';
+
+        var applicationPhaseAudio = null;
+        var loreTestAnswers = {}; // музика "4" протягом кроку заявки, KIRA і подачі
+
+        function startApplicationPhaseMusic() {
+            if (applicationPhaseAudio) return; // вже грає
+            fetch('../audio_config.json?t=' + Date.now(), { cache: 'no-store' }).then(function(r) { return r.ok ? r.json() : null; }).then(function(c) {
+                var file = c && c['4'] ? String(c['4']).trim() : '';
+                if (!file) return;
+                applicationPhaseAudio = new Audio('../assets/audio/' + file);
+                applicationPhaseAudio.loop = true;
+                applicationPhaseAudio.volume = 0.4;
+                applicationPhaseAudio.play().catch(function() {});
+            }).catch(function() {});
+        }
+
+        function playApplicationMusic() {
+            fetch('../audio_config.json?t=' + Date.now(), { cache: 'no-store' }).then(function(r) { return r.ok ? r.json() : null; }).then(function(c) {
+                var file = c && c['4'] ? String(c['4']).trim() : '';
+                if (!file) return;
+                var a = new Audio('../assets/audio/' + file);
+                a.volume = 0.4;
+                a.play().catch(function() {});
+            }).catch(function() {});
+        }
+
+        function getDraft() {
+            try {
+                const raw = sessionStorage.getItem(DRAFT_KEY);
+                return raw ? JSON.parse(raw) : null;
+            } catch (e) { return null; }
+        }
+        function setDraft(o) {
+            try { sessionStorage.setItem(DRAFT_KEY, JSON.stringify(o)); } catch (e) {}
+        }
+        function getKiraResult() {
+            try {
+                const raw = sessionStorage.getItem(KIRA_KEY);
+                return raw ? JSON.parse(raw) : null;
+            } catch (e) { return null; }
+        }
+        function clearDraftAndKira() {
+            try {
+                sessionStorage.removeItem(DRAFT_KEY);
+                sessionStorage.removeItem(KIRA_KEY);
+                sessionStorage.removeItem(LORE_TEST_KEY);
+            } catch (e) {}
+        }
+        function getLoreTestPassed() {
+            try { return sessionStorage.getItem(LORE_TEST_KEY) === '1'; } catch (e) { return false; }
+        }
+        function setLoreTestPassed() {
+            try { sessionStorage.setItem(LORE_TEST_KEY, '1'); } catch (e) {}
+        }
+        var LORE_QUESTIONS = [
+            { id: 'l1', q: 'Що таке HELIX у контексті системи?', opts: [
+                { t: 'Інтерактивна історійна система / протокол', v: 'a' },
+                { t: 'Назва зброї', v: 'b' },
+                { t: 'Мережевий чат', v: 'c' }
+            ], correct: 'a' },
+            { id: 'l2', q: 'Яка фракція відповідає за контроль і стабільність у всесвіті гри?', opts: [
+                { t: 'ORIGIN', v: 'a' },
+                { t: 'OLYMPOS', v: 'b' },
+                { t: 'THEMIS', v: 'c' }
+            ], correct: 'b' },
+            { id: 'l3', q: 'Що таке Pandora Protocol у нарративі?', opts: [
+                { t: 'Музичний альбом', v: 'a' },
+                { t: 'Протокол / знання, пов\'язане з ключем системи', v: 'b' },
+                { t: 'Назва планети', v: 'c' }
+            ], correct: 'b' }
+        ];
+        function renderLoreTest() {
+            var c = document.getElementById('lore-test-container');
+            if (!c) return;
+            c.innerHTML = '';
+            LORE_QUESTIONS.forEach(function(item, i) {
+                var wrap = document.createElement('div');
+                wrap.style.marginBottom = '16px';
+                wrap.innerHTML = '<div class="q">' + (i + 1) + '. ' + item.q + '</div><div class="opts" id="opts-' + item.id + '"></div>';
+                c.appendChild(wrap);
+                var optsEl = document.getElementById('opts-' + item.id);
+                (item.opts || []).forEach(function(o) {
+                    var btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'opt' + (loreTestAnswers[item.id] === o.v ? ' selected' : '');
+                    btn.textContent = o.t;
+                    btn.onclick = function() {
+                        loreTestAnswers[item.id] = o.v;
+                        optsEl.querySelectorAll('.opt').forEach(function(x) { x.classList.remove('selected'); });
+                        btn.classList.add('selected');
+                        document.getElementById('lore-test-err').style.display = 'none';
+                    };
+                    optsEl.appendChild(btn);
+                });
+            });
+        }
+        function checkLoreTest() {
+            var errEl = document.getElementById('lore-test-err');
+            for (var i = 0; i < LORE_QUESTIONS.length; i++) {
+                var item = LORE_QUESTIONS[i];
+                if (loreTestAnswers[item.id] !== item.correct) {
+                    errEl.textContent = 'Невірна відповідь на питання ' + (i + 1) + '. Перечитайте архів всесвіту (UNIVERSE DB), якщо потрібно.';
+                    errEl.style.display = 'block';
+                    errEl.style.color = '#f55';
+                    return false;
+                }
+            }
+            setLoreTestPassed();
+            document.getElementById('step2-lore-block').style.display = 'none';
+            document.getElementById('step2-test-block').style.display = 'block';
+            document.getElementById('step2-test-block').style.textAlign = 'center';
+            errEl.style.display = 'none';
+            return true;
+        }
+
+        function goToTestStep() {
+            const name = (document.getElementById('inp-name').value || '').trim();
+            const tg = (document.getElementById('inp-tg').value || '').trim();
+            const faction = document.getElementById('inp-faction').value;
+            const rolePref = (document.getElementById('inp-role-pref').value || '').trim();
+            const btn = document.getElementById('btn-submit');
+            const msgEl = document.getElementById('submit-msg');
+
+            showFieldError('err-name', '');
+            showFieldError('err-tg', '');
+            showFieldError('err-role', '');
+            setInputError('inp-name', false);
+            setInputError('inp-tg', false);
+            setInputError('inp-role-pref', false);
+            msgEl.style.display = 'none';
+
+            let valid = true;
+            if (!name) {
+                showFieldError('err-name', 'Введіть ім\'я або позивний.');
+                setInputError('inp-name', true);
+                valid = false;
+            }
+            if (!validateTelegram(tg)) {
+                showFieldError('err-tg', 'Невірний формат Telegram (наприклад @username або t.me/username).');
+                setInputError('inp-tg', true);
+                valid = false;
+            }
+            if (!rolePref) {
+                showFieldError('err-role', 'Оберіть позицію.');
+                setInputError('inp-role-pref', true);
+                valid = false;
+            }
+            if (!valid) return;
+
+            setDraft({ name: name, tg: tg, faction_pref: faction, role_pref: rolePref });
+            document.getElementById('step-1').classList.remove('current');
+            document.getElementById('step-1').style.display = 'none';
+            document.getElementById('step-2').style.display = 'block';
+            document.getElementById('step-2').classList.add('current');
+            startApplicationPhaseMusic();
+            // Спочатку лорний тест, потім K.I.R.A., потім відправка заявки
+            var loreBlock = document.getElementById('step2-lore-block');
+            var testBlock = document.getElementById('step2-test-block');
+            var submitBlock = document.getElementById('step2-submit-block');
+            loreBlock.style.display = 'none';
+            testBlock.style.display = 'none';
+            submitBlock.style.display = 'none';
+            var lorePassed = getLoreTestPassed();
+            var kira = getKiraResult();
+            if (!lorePassed) {
+                loreBlock.style.display = 'block';
+                renderLoreTest();
+            } else if (kira && kira.type) {
+                submitBlock.style.display = 'block';
+                document.getElementById('step2-summary').textContent = name + ' · ' + (tg || '—') + ' · ' + faction + ' · ' + rolePref;
+                document.getElementById('step2-kira-type').textContent = kira.type;
+            } else {
+                testBlock.style.display = 'block';
+                testBlock.style.textAlign = 'center';
+            }
+        }
+
+        async function sendApplication() {
+            const draft = getDraft();
+            const kira = getKiraResult();
+            if (!draft || !draft.name || !draft.role_pref) {
+                alert('Дані заявки втрачено. Заповніть форму знову.');
+                return;
+            }
+            if (!kira || !kira.type) {
+                alert('Спочатку пройдіть K.I.R.A. тест. Натисніть «ПРОЙТИ K.I.R.A. ТЕСТ» і поверніться сюди після завершення.');
+                return;
+            }
+            const btn = document.getElementById('btn-send-application');
+            const msgEl = document.getElementById('step2-msg');
+            msgEl.style.display = 'none';
+            btn.disabled = true;
+            btn.textContent = 'Відправка...';
+            try {
+                const res = await fetch('../register_handler.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: draft.name,
+                        tg: draft.tg || '',
+                        faction_pref: draft.faction_pref,
+                        role_pref: draft.role_pref,
+                        anon: false,
+                        psy: kira && kira.type ? [kira.type] : [],
+                        lore: kira && kira.scores ? kira.scores : {}
+                    })
+                });
+                const json = await res.json().catch(() => ({}));
+                if (res.ok && json.ok) {
+                    playApplicationMusic();
+                    clearDraftAndKira();
+                    document.getElementById('step-2').style.display = 'none';
+                    document.getElementById('step-2').classList.remove('current');
+                    document.getElementById('step-3').style.display = 'block';
+                    document.getElementById('step-3').classList.add('current');
+                } else {
+                    msgEl.textContent = (json && json.error) ? json.error : 'Помилка сервера. Спробуйте ще раз.';
+                    msgEl.style.display = 'block';
+                }
+            } catch (e) {
+                msgEl.textContent = ERR_MSG;
+                msgEl.style.display = 'block';
+            }
+            btn.disabled = false;
+            btn.textContent = 'ВІДПРАВИТИ ЗАЯВКУ';
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            dbUsers = [];
+            try {
+                const url = '../get_users.php?t=' + Date.now() + '&nocache=' + Math.random();
+                const res = await fetch(url, { cache: 'no-store', headers: { 'Cache-Control': 'no-cache' } });
+                if (!res.ok) throw new Error();
+                dbUsers = await res.json();
+                if (!Array.isArray(dbUsers)) throw new Error();
+            } catch (e) {
+                console.error('[REGISTER] DB Error:', e);
+                alert(ERR_MSG);
+            }
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('step') === '2') {
+                const draft = getDraft();
+                const kira = getKiraResult();
+                const lorePassed = getLoreTestPassed();
+                if (draft && draft.name) {
+                    document.getElementById('step-1').style.display = 'none';
+                    document.getElementById('step-1').classList.remove('current');
+                    document.getElementById('step-2').style.display = 'block';
+                    document.getElementById('step-2').classList.add('current');
+                    var loreBlock = document.getElementById('step2-lore-block');
+                    var testBlock = document.getElementById('step2-test-block');
+                    var submitBlock = document.getElementById('step2-submit-block');
+                    loreBlock.style.display = 'none';
+                    testBlock.style.display = 'none';
+                    submitBlock.style.display = 'none';
+                    if (!lorePassed) {
+                        loreBlock.style.display = 'block';
+                        renderLoreTest();
+                    } else if (kira && kira.type) {
+                        submitBlock.style.display = 'block';
+                        document.getElementById('step2-summary').textContent = draft.name + ' · ' + (draft.tg || '—') + ' · ' + (draft.faction_pref || '') + ' · ' + (draft.role_pref || '');
+                        document.getElementById('step2-kira-type').textContent = kira.type;
+                    } else {
+                        testBlock.style.display = 'block';
+                        testBlock.style.textAlign = 'center';
+                    }
+                    startApplicationPhaseMusic();
+                }
+            }
+        });
+
+        async function updateRoles() {
+            const faction = document.getElementById('inp-faction').value;
+            const select = document.getElementById('inp-role-pref');
+            showFieldError('err-role', '');
+            setInputError('inp-role-pref', false);
+            if (!faction) {
+                select.innerHTML = "<option value='' disabled selected>-- SELECT FACTION FIRST --</option>";
+                select.disabled = true;
+                return;
+            }
+            select.innerHTML = "<option value='' disabled selected>-- LOADING... --</option>";
+            select.disabled = true;
+            try {
+                const url = '../get_users.php?t=' + Date.now() + '&nocache=' + Math.random();
+                const res = await fetch(url, { cache: 'no-store', headers: { 'Cache-Control': 'no-cache' } });
+                if (!res.ok) throw new Error();
+                const freshUsers = await res.json();
+                if (!Array.isArray(freshUsers)) throw new Error();
+                dbUsers = freshUsers;
+                const available = dbUsers.filter(u => {
+                    if (!u || typeof u !== 'object') return false;
+                    if (u.role === 'GAMEMASTER' || u.chapter === 'admin' || u.access_code === 'HELIX2025') return false;
+                    return u.chapter === 'ch2' && u.faction === faction && (u.booking_status === 'free' || !u.booking_status);
+                });
+                select.innerHTML = '';
+                select.disabled = false;
+                const optDefault = document.createElement('option');
+                optDefault.value = '';
+                optDefault.disabled = true;
+                optDefault.selected = true;
+                optDefault.innerText = '-- SELECT ROLE --';
+                select.appendChild(optDefault);
+                if (available.length === 0) {
+                    const opt = document.createElement('option');
+                    opt.value = '';
+                    opt.disabled = true;
+                    opt.innerText = 'NO VACANCIES';
+                    select.appendChild(opt);
+                } else {
+                    available.forEach(u => {
+                        const opt = document.createElement('option');
+                        opt.value = u.role + ' (' + u.name + ')';
+                        opt.innerText = u.role + ' // ' + u.name;
+                        select.appendChild(opt);
+                    });
+                }
+            } catch (e) {
+                console.error('[REGISTER] Error refreshing roles:', e);
+                select.innerHTML = "<option value='' disabled selected>-- ERROR --</option>";
+                select.disabled = true;
+            }
+        }
+
+    </script>
+</body>
+</html>

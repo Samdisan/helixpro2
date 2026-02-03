@@ -1,0 +1,46 @@
+{
+    "ch1": {
+        "status": "running",
+        "end_time": 1769685299,
+        "duration": 60,
+        "start_time": 1769681699,
+        "acts": [
+            {
+                "name": "Intro",
+                "duration": 10
+            },
+            {
+                "name": "Main Phase",
+                "duration": 40
+            },
+            {
+                "name": "Finale",
+                "duration": 10
+            },
+            {
+                "name": "New Stage",
+                "duration": 15
+            }
+        ]
+    },
+    "ch2": {
+        "status": "stopped",
+        "end_time": 0,
+        "duration": 149,
+        "acts": [
+            {
+                "name": "Intro",
+                "duration": 15
+            },
+            {
+                "name": "Main Phase",
+                "duration": 40
+            },
+            {
+                "name": "Finale",
+                "duration": 10
+            }
+        ],
+        "start_time": 1769753152
+    }
+}

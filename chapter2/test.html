@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HELIX | K.I.R.A. TEST</title>
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        body { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; background-color: #000; padding: 20px; }
+        
+        .test-container { width: 100%; max-width: 600px; text-align: center; }
+        
+        /* ЧИТАБЕЛЬНИЙ БЛОК ПИТАНЬ */
+        .question-box {
+            background: #111; /* Непрозорий фон */
+            border: 1px solid var(--accent-cyan);
+            padding: 40px 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+        }
+        
+        .q-text { 
+            font-size: 1.4rem; /* Великий шрифт */
+            color: #fff;       /* Яскраво білий */
+            margin-bottom: 40px; 
+            line-height: 1.6;
+            font-weight: bold;
+        }
+        
+        .options-grid { display: grid; gap: 15px; }
+        
+        .option-btn {
+            background: #222;
+            border: 1px solid #555;
+            color: #ddd;
+            padding: 20px;
+            cursor: pointer;
+            text-align: left;
+            transition: 0.3s;
+            font-family: var(--font-term);
+            font-size: 1rem;
+            line-height: 1.4;
+        }
+        .option-btn:hover {
+            border-color: var(--accent-cyan);
+            color: #fff;
+            background: var(--accent-cyan);
+            color: #000;
+        }
+        
+        #result-box { 
+            display: none; text-align: center; animation: fadeIn 1s; 
+            padding: 40px; border: 2px solid var(--accent-gold); 
+            background: rgba(10, 5, 0, 0.95); 
+            box-shadow: 0 0 50px rgba(255, 215, 0, 0.3);
+        }
+        .res-title { 
+            font-size: 3rem; color: var(--accent-gold); 
+            margin-bottom: 20px; text-transform: uppercase; 
+            font-family: 'Cinzel', serif; font-weight: 900;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+            letter-spacing: 5px;
+        }
+        .res-desc { 
+            color: #ddd; font-size: 1.1rem; margin-bottom: 30px; 
+            line-height: 1.8; text-align: justify;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+        }
+        
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h2 style="color: var(--accent-cyan); margin-bottom: 30px; letter-spacing: 3px;">K.I.R.A. ANALYSIS</h2>
+        
+        <div id="quiz-box" class="question-box">
+            <div id="q-text" class="q-text">ЗАВАНТАЖЕННЯ ПИТАННЯ...</div>
+            <div id="options" class="options-grid"></div>
+        </div>
+
+        <div id="result-box">
+            <div class="res-title" id="res-role">ROLE</div>
+            <div class="res-desc" id="res-desc">...</div>
+            <a href="hub.html" style="display:inline-block; padding:15px 30px; background:transparent; border:2px solid var(--accent-gold); color:var(--accent-gold); text-decoration:none; text-transform:uppercase; font-family:'Cinzel', serif; font-weight:700; letter-spacing:2px; transition:0.3s; margin-top:20px;" onmouseover="this.style.background='rgba(255,215,0,0.1)'; this.style.boxShadow='0 0 20px rgba(255,215,0,0.3)'" onmouseout="this.style.background='transparent'; this.style.boxShadow='none'">ПРИЙНЯТИ ПРИЗНАЧЕННЯ</a>
+        </div>
+    </div>
+
+    <script src="../session_store.js"></script>
+    <script src="../system.js"></script>
+    <script>
+        (function() {
+            var p = new URLSearchParams(window.location.search);
+            if (p.get('from') === 'register') {
+                fetch('../audio_config.json?t=' + Date.now(), { cache: 'no-store' }).then(function(r) { return r.ok ? r.json() : null; }).then(function(c) {
+                    var file = c && c['4'] ? String(c['4']).trim() : '';
+                    if (!file) return;
+                    var a = new Audio('../assets/audio/' + file);
+                    a.loop = true;
+                    a.volume = 0.4;
+                    a.play().catch(function() {});
+                }).catch(function() {});
+            }
+        })();
+        const questions = [
+            { t: "Ви бачите пораненого члена команди, але у вас наказ евакуювати дані. Ворог близько. Ваші дії?", 
+              ops: [{t:"Виконати наказ (Дані - пріоритет)", s:"L"}, {t:"Врятувати людину (Життя - пріоритет)", s:"H"}, {t:"Забрати дані і використати пораненого як приманку", s:"M"}] },
+            { t: "Що для вас є вищим законом?", 
+              ops: [{t:"Протокол та Порядок", s:"L"}, {t:"Свобода волі", s:"C"}, {t:"Виживання найсильнішого", s:"M"}] },
+            { t: "Влада - це...", 
+              ops: [{t:"Відповідальність", s:"L"}, {t:"Інструмент для досягнення мети", s:"M"}, {t:"Ілюзія", s:"H"}] },
+            { t: "Яка ваша реакція на невідоме?", 
+              ops: [{t:"Аналіз і вивчення", s:"L"}, {t:"Страх і агресія", s:"M"}, {t:"Цікавість і адаптація", s:"C"}] },
+            { t: "Коли система помиляється, ви...", 
+              ops: [{t:"Виправляєте помилку через протокол", s:"L"}, {t:"Шукаєте альтернативний шлях", s:"C"}, {t:"Використовуєте помилку на свою користь", s:"M"}] },
+            { t: "Жертва заради мети - це...", 
+              ops: [{t:"Необхідність, якщо це виправдано процедурою", s:"L"}, {t:"Неприйнятно, навіть якщо це єдиний шлях", s:"H"}, {t:"Частина гри, якщо результат того вартий", s:"M"}] },
+            { t: "Що важливіше: правда чи порядок?", 
+              ops: [{t:"Порядок створює правду", s:"L"}, {t:"Правда важливіша за будь-який порядок", s:"H"}, {t:"Залежить від ситуації", s:"C"}] },
+            { t: "Ваші емоції під час прийняття важкого рішення...", 
+              ops: [{t:"Відключені, працює тільки логіка", s:"L"}, {t:"Сильні, але не перешкоджають", s:"H"}, {t:"Контрольовані, як інструмент", s:"M"}] },
+            { t: "Якщо хтось порушує правила заради доброї мети...", 
+              ops: [{t:"Порушення є порушенням, незалежно від мети", s:"L"}, {t:"Мета виправдовує засоби, якщо це рятує життя", s:"H"}, {t:"Залежить від того, хто порушує і що отримає", s:"M"}] },
+            { t: "Ваша найбільша слабкість?", 
+              ops: [{t:"Надмірна довіра до системи", s:"L"}, {t:"Емоційна прив'язаність до людей", s:"H"}, {t:"Цинізм і прагматизм", s:"M"}] }
+        ];
+
+        let cur = 0;
+        let scores = { L:0, H:0, M:0, C:0 };
+
+        function loadQ() {
+            if (cur >= questions.length) return showRes();
+            const q = questions[cur];
+            document.getElementById('q-text').innerText = q.t;
+            const opsDiv = document.getElementById('options');
+            opsDiv.innerHTML = "";
+            q.ops.forEach(op => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = "> " + op.t;
+                btn.onclick = () => { scores[op.s]++; cur++; loadQ(); };
+                opsDiv.appendChild(btn);
+            });
+        }
+
+        function showRes() {
+            document.getElementById('quiz-box').style.display = 'none';
+            document.getElementById('result-box').style.display = 'block';
+            
+            const maxScore = Math.max(scores.L, scores.H, scores.M, scores.C);
+            
+            let role = "CIVILIAN";
+            let desc = "Система фіксує стабільну, але пасивну позицію. Ви уникаєте різких рішень і тримаєтесь осторонь від конфліктів. " +
+                       "Це може бути мудрістю, а може — страхом перед наслідками.";
+            
+            if (scores.L >= maxScore && scores.L > scores.H && scores.L > scores.M) {
+                role = "STRATEGIST";
+                desc = "Ви мислите як системний Аналітик. Для вас важливі структура, правила і довгострокові наслідки. " +
+                       "Ви схильні приймати холодні, раціональні рішення, навіть якщо вони емоційно неприємні. " +
+                       "Система бачить у вас потенціал для управління складними процесами, але також ризик втрати людяності.";
+            } else if (scores.H >= maxScore && scores.H > scores.L && scores.H > scores.M) {
+                role = "PROTECTOR";
+                desc = "Ви мислите як Захисник. Для вас на першому місці люди, а не протоколи. " +
+                       "Ви готові ризикувати системою заради окремої людини і тримаєте фокус на емпатії та підтримці. " +
+                       "Система фіксує високий рівень емоційного інтелекту, але також потенційну нестабільність під тиском.";
+            } else if (scores.M >= maxScore && scores.M > scores.L && scores.M > scores.H) {
+                role = "OPERATOR";
+                desc = "Ви мислите як Оператор. Вас цікавить результат і ефективність. " +
+                       "Ви швидко приймаєте рішення, приймаючи ризики та можливі жертви як частину задачі. " +
+                       "Система бачить прагматизм і готовність діяти, але також ризик цинізму та втрати моральних орієнтирів.";
+            } else if (scores.C >= maxScore) {
+                role = "ADAPTOR";
+                desc = "Ви мислите як Адаптер. Ви не слідуєте жорстким правилам, але й не дієте хаотично. " +
+                       "Ваша сила — у гнучкості та здатності знаходити нестандартні рішення. " +
+                       "Система фіксує творчий підхід, але також непередбачуваність ваших дій.";
+            } else {
+                role = "ANOMALY";
+                desc = "Ваша патерна поведінки виходить за межі стандартних моделей. " +
+                       "Система фіксує нестандартні поєднання рішень, які важко спрогнозувати. " +
+                       "Ви можете бути як найбільшою загрозою для системи, так і її найбільшою надією на зміни.";
+            }
+            
+            // Додаємо статистику
+            const stats = `L:${scores.L} H:${scores.H} M:${scores.M} C:${scores.C}`;
+            
+            document.getElementById('res-role').innerText = role;
+            document.getElementById('res-desc').innerText = desc + "\n\n[ " + stats + " ]";
+
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('from') === 'register') {
+                try {
+                    sessionStorage.setItem('helix_kira_application', JSON.stringify({
+                        type: role,
+                        scores: { L: scores.L, H: scores.H, M: scores.M, C: scores.C }
+                    }));
+                } catch (e) {}
+                window.location.href = 'register.html?step=2';
+                return;
+            }
+
+            // Збереження результатів на сервері (зв'язок з профілем гравця)
+            const accessCode = params.get('code') || sessionStorage.getItem('helix_access_code') || '';
+            if (accessCode) {
+                fetch('../save_kira.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        access_code: accessCode,
+                        kira_type: role,
+                        scores: { L: scores.L, H: scores.H, M: scores.M, C: scores.C }
+                    })
+                }).then(r => r.json()).then(data => {
+                    if (data && data.ok) console.log('[K.I.R.A.] Результат збережено на сервері:', data.kira_type);
+                }).catch(() => {});
+            }
+        }
+        
+        loadQ();
+    </script>
+</body>
+</html>

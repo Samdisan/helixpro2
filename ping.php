@@ -1,0 +1,54 @@
+<?php
+// ping.php — оновлення last_active гравця (хто заходив, коли). Без PII у відповіді.
+header('Content-Type: application/json; charset=utf-8');
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type');
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    exit(0);
+}
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405);
+    echo json_encode(['ok' => false, 'error' => 'Method not allowed']);
+    exit;
+}
+
+$input = json_decode(file_get_contents('php://input'), true) ?: [];
+$code = trim($input['access_code'] ?? $_POST['access_code'] ?? '');
+if (!$code) {
+    echo json_encode(['ok' => false, 'error' => 'Missing access_code']);
+    exit;
+}
+
+$usersFile = __DIR__ . '/users.json';
+if (!file_exists($usersFile)) {
+    echo json_encode(['ok' => false, 'error' => 'Data not found']);
+    exit;
+}
+
+$users = json_decode(file_get_contents($usersFile), true);
+if (!is_array($users)) {
+    echo json_encode(['ok' => false, 'error' => 'Invalid data']);
+    exit;
+}
+
+$now = date('c');
+$found = false;
+foreach ($users as $i => $u) {
+    if (($u['access_code'] ?? '') === $code || ($u['id'] ?? '') === $code) {
+        $users[$i]['last_active'] = $now;
+        $found = true;
+        break;
+    }
+}
+
+if (!$found) {
+    echo json_encode(['ok' => false, 'error' => 'User not found']);
+    exit;
+}
+
+file_put_contents($usersFile, json_encode($users, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+echo json_encode(['ok' => true]);
+exit;

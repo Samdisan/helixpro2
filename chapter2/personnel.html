@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>HELIX | PANTHEON</title>
+    <link rel="stylesheet" href="../style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Courier+New&display=swap" rel="stylesheet">
+    <style>
+        /* --- CORE AESTHETICS --- */
+        body { 
+            background-color: #020202; 
+            background-image: 
+                linear-gradient(rgba(0, 10, 10, 0.9), rgba(0, 0, 0, 0.95)),
+                url('https://www.transparenttextures.com/patterns/black-scales.png');
+            color: #ccc; 
+            font-family: 'Cinzel', serif; 
+            margin: 0; min-height: 100vh; 
+            display: flex; flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* CRT SCANLINE EFFECT (OVERLAY) */
+        .crt-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none; z-index: 9999;
+            opacity: 0.6;
+        }
+
+        .nav-bar { 
+            background: #000; padding: 20px 30px; 
+            border-bottom: 2px solid #b8860b; 
+            display: flex; justify-content: space-between; align-items: center; 
+            position: sticky; top: 0; z-index: 100;
+            box-shadow: 0 5px 30px rgba(184, 134, 11, 0.2);
+        }
+
+        .container { max-width: 1400px; margin: 0 auto; width: 100%; padding: 30px; box-sizing: border-box; }
+
+        .page-title { 
+            text-align: center; color: #ffd700; font-size: 3rem; margin: 40px 0; 
+            text-transform: uppercase; letter-spacing: 10px; font-weight: 900;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+            position: relative; display: inline-block; width: 100%;
+        }
+
+        /* --- GLITCH TEXT EFFECT --- */
+        .glitch-text { position: relative; color: #fff; }
+        .glitch-text::before, .glitch-text::after {
+            content: attr(data-text); position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #020202;
+        }
+        .glitch-text::before {
+            left: 2px; text-shadow: -1px 0 #ff00c1; clip: rect(44px, 450px, 56px, 0);
+            animation: glitch-anim 5s infinite linear alternate-reverse;
+        }
+        .glitch-text::after {
+            left: -2px; text-shadow: -1px 0 #00fff9; clip: rect(44px, 450px, 56px, 0);
+            animation: glitch-anim2 5s infinite linear alternate-reverse;
+        }
+
+        @keyframes glitch-anim {
+            0% { clip: rect(38px, 9999px, 84px, 0); transform: skew(0.6deg); }
+            5% { clip: rect(26px, 9999px, 98px, 0); transform: skew(0.6deg); }
+            10% { clip: rect(10px, 9999px, 96px, 0); transform: skew(0.1deg); }
+            15% { clip: rect(44px, 9999px, 12px, 0); transform: skew(0.2deg); }
+            20% { clip: rect(81px, 9999px, 60px, 0); transform: skew(0.9deg); }
+            100% { clip: rect(98px, 9999px, 83px, 0); transform: skew(0.3deg); }
+        }
+        @keyframes glitch-anim2 {
+            0% { clip: rect(10px, 9999px, 25px, 0); transform: skew(0.4deg); }
+            5% { clip: rect(92px, 9999px, 57px, 0); transform: skew(0.9deg); }
+            100% { clip: rect(6px, 9999px, 88px, 0); transform: skew(0.2deg); }
+        }
+
+        /* --- PANTHEON COLUMNS --- */
+        .pantheon-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; align-items: start; }
+        @media (max-width: 600px) {
+            .nav-bar { padding: 12px 16px; padding-left: max(16px, env(safe-area-inset-left)); padding-right: max(16px, env(safe-area-inset-right)); flex-wrap: wrap; gap: 10px; }
+            .page-title { font-size: 1.75rem; letter-spacing: 4px; margin: 24px 0; }
+            .pantheon-grid { grid-template-columns: 1fr; gap: 20px; }
+            .container { padding: 16px; padding-bottom: env(safe-area-inset-bottom, 16px); }
+            .god-card { padding: 12px; min-height: 72px; }
+            .g-avatar { width: 48px; height: 48px; min-width: 48px; min-height: 48px; font-size: 1.4rem; }
+        }
+
+        .faction-column {
+            position: relative;
+            padding: 20px;
+            border: 1px solid #333;
+            background: rgba(10, 10, 10, 0.6);
+            backdrop-filter: blur(5px);
+            transition: 0.3s;
+        }
+        
+        /* COLUMN THEMES */
+        .col-olympus { border-top: 5px solid #ffd700; box-shadow: 0 -10px 30px rgba(255, 215, 0, 0.1); }
+        .col-origin { border-top: 5px solid #00f0ff; box-shadow: 0 -10px 30px rgba(0, 240, 255, 0.1); }
+        .col-themis { border-top: 5px solid #ff4444; box-shadow: 0 -10px 30px rgba(255, 68, 68, 0.1); }
+        .col-moirai { border-top: 5px solid #9d4edd; box-shadow: 0 -10px 30px rgba(157, 78, 221, 0.1); }
+
+        .faction-title {
+            text-align: center; font-size: 2rem; margin-bottom: 30px; font-weight: 700; 
+            border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; letter-spacing: 3px;
+        }
+
+        /* --- GOD CARDS --- */
+        .god-card {
+            display: flex; align-items: center; gap: 15px;
+            padding: 15px; margin-bottom: 20px;
+            background: #080808; border: 1px solid #222;
+            cursor: pointer; transition: all 0.3s ease;
+            position: relative; overflow: hidden;
+        }
+        .god-card::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 2px; height: 100%;
+            background: #333; transition: 0.3s;
+        }
+        .god-card:hover { transform: translateX(5px); background: #111; border-color: #555; }
+        
+        /* Малі елементи дизайну: кутові дужки, серійний відбиток */
+        .god-card::after {
+            content: ''; position: absolute; bottom: 6px; right: 8px; width: 20px; height: 10px;
+            border-right: 1px solid rgba(255,255,255,0.15); border-bottom: 1px solid rgba(255,255,255,0.15);
+            pointer-events: none;
+        }
+        .god-card .card-serial {
+            position: absolute; bottom: 6px; left: 10px; font-size: 0.55rem; font-family: 'Courier New', monospace;
+            color: rgba(255,255,255,0.2); letter-spacing: 1px; pointer-events: none;
+        }
+        .god-card .card-glitch-line {
+            position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(0,255,255,0.08), transparent);
+            opacity: 0; pointer-events: none;
+        }
+        .god-card:hover .card-glitch-line { opacity: 1; animation: glitch-line 0.4s ease-out; }
+        @keyframes glitch-line { 0%{opacity:0} 50%{opacity:1} 100%{opacity:0} }
+        
+        /* HOVER EFFECTS BY FACTION */
+        .col-olympus .god-card:hover::before { background: #ffd700; box-shadow: 0 0 10px #ffd700; }
+        .col-origin .god-card:hover::before { background: #00f0ff; box-shadow: 0 0 10px #00f0ff; }
+        .col-themis .god-card:hover::before { background: #ff4444; box-shadow: 0 0 10px #ff4444; }
+
+        .g-avatar {
+            width: 60px; height: 60px; min-width: 60px; min-height: 60px;
+            border: 1px solid #444;
+            background: #111;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Cinzel', serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.5);
+            transition: 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        .g-avatar img {
+            position: absolute;
+            left: 0; top: 0;
+            width: 100%; height: 100%;
+            object-fit: cover;
+        }
+        .god-card:hover .g-avatar { color: rgba(255, 255, 255, 0.9); border-color: #fff; }
+
+        .g-info { flex: 1; z-index: 2; }
+        .g-name { color: #eee; font-size: 1.1rem; font-weight: bold; letter-spacing: 1px; }
+        .g-role { color: #777; font-size: 0.7rem; font-family: 'Courier New'; text-transform: uppercase; margin-top: 4px; }
+
+        /* BADGES */
+        .badge-open {
+            position: absolute; right: 10px; top: 10px;
+            background: rgba(0, 255, 0, 0.1); color: #0f0; 
+            font-size: 0.6rem; padding: 2px 6px; 
+            border: 1px solid #0f0; font-family: 'Courier New';
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse { 0%{opacity:0.6} 50%{opacity:1; text-shadow:0 0 5px #0f0} 100%{opacity:0.6} }
+        
+        /* BUTTON REGISTER */
+        .btn-join {
+            background: transparent; color: #ffd700; padding: 10px 25px; 
+            text-decoration: none; font-weight: bold; font-family: 'Cinzel';
+            border: 1px solid #ffd700; transition: 0.3s; letter-spacing: 2px;
+            display: inline-block;
+        }
+        .btn-join:hover { background: #ffd700; color: #000; box-shadow: 0 0 20px rgba(255, 215, 0, 0.4); }
+
+        /* MODAL */
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 2000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+        .paper { 
+            background: #050505; border: 1px solid #444; 
+            border-top: 4px solid #ffd700; border-bottom: 4px solid #ffd700;
+            padding: 50px; max-width: 700px; width: 90%; max-height: 85vh; 
+            overflow-y: auto; text-align: center; box-shadow: 0 0 100px rgba(0,0,0,0.8);
+            position: relative;
+        }
+        .paper::before {
+            content: "CONFIDENTIAL"; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-30deg);
+            font-size: 5rem; color: rgba(255, 255, 255, 0.03); font-weight: 900; pointer-events: none;
+        }
+        
+        .big-avatar {
+            width: 180px; height: 180px; min-width: 180px; min-height: 180px;
+            border-radius: 50%;
+            border: 4px solid #333;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Cinzel', serif;
+            font-size: 5rem;
+            font-weight: 700;
+            color: rgba(255, 215, 0, 0.4);
+            background: #0a0a0a;
+            overflow: hidden;
+            position: relative;
+        }
+        .big-avatar img {
+            position: absolute;
+            left: 0; top: 0;
+            width: 100%; height: 100%;
+            object-fit: cover;
+        }
+        .m-name { font-size: 2.5rem; color: #fff; margin: 0 0 10px 0; text-transform: uppercase; letter-spacing: 3px; }
+        .m-role { color: var(--accent-cyan); font-family: 'Courier New', monospace; font-size: 0.9rem; display: block; margin-bottom: 30px; border-bottom: 1px solid #333; padding-bottom: 20px; }
+        .m-text { font-family: 'Courier New', monospace; line-height: 1.8; color: #aaa; text-align: justify; font-size: 1rem; }
+        .close-btn { position: absolute; top: 20px; right: 30px; font-size: 2.5rem; cursor: pointer; color: #555; transition: 0.3s; }
+        .close-btn:hover { color: #f00; }
+
+        /* DECORATION */
+        .greek-letter { position: absolute; color: rgba(255,255,255,0.03); font-size: 10rem; font-weight: bold; pointer-events: none; z-index: 0; }
+    </style>
+</head>
+<body>
+    <div class="crt-overlay"></div>
+
+    <div class="nav-bar">
+        <span style="color:#ffd700; letter-spacing:3px; font-weight:bold;">HELIX // ARCHIVE</span>
+        <div style="display:flex; gap:20px; align-items:center;">
+            <a href="register.html" class="btn-join">JOIN PROTOCOL</a>
+            <a href="hub.html" style="color:#666; text-decoration:none; font-family:'Courier New';">[ EXIT ]</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="page-title glitch-text" data-text="PERSONNEL MANIFEST">PERSONNEL MANIFEST</div>
+
+        <div class="pantheon-grid">
+            
+            <div class="faction-column col-olympus">
+                <span class="greek-letter" style="top:10px; right:10px;">Ω</span>
+                <div class="faction-title" style="color:#ffd700">OLYMPOS</div>
+                <div id="list-olympus"><div style="color:#555; padding:20px; text-align:center;">Завантаження...</div></div>
+            </div>
+
+            <div class="faction-column col-origin">
+                <span class="greek-letter" style="top:10px; right:10px;">Α</span>
+                <div class="faction-title" style="color:#00f0ff">ORIGIN</div>
+                <div id="list-origin"><div style="color:#555; padding:20px; text-align:center;">Завантаження...</div></div>
+            </div>
+
+            <div class="faction-column col-themis">
+                <span class="greek-letter" style="top:10px; right:10px;">Θ</span>
+                <div class="faction-title" style="color:#ff4444">THEMIS</div>
+                <div id="list-themis"><div style="color:#555; padding:20px; text-align:center;">Завантаження...</div></div>
+            </div>
+
+            <div class="faction-column col-moirai">
+                <span class="greek-letter" style="top:10px; right:10px;">Μ</span>
+                <div class="faction-title" style="color:#9d4edd">МОЙРИ</div>
+                <div id="list-moirai"><div style="color:#555; padding:20px; text-align:center;">Завантаження...</div></div>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="bio-modal" class="modal" onclick="if(event.target===this) this.style.display='none'">
+        <div class="paper" onclick="event.stopPropagation()">
+            <span class="close-btn" onclick="document.getElementById('bio-modal').style.display='none'" aria-label="Закрити">×</span>
+            <div id="m-symbol" class="big-avatar" aria-hidden="true"></div>
+            <h2 id="m-name" class="m-name glitch-text" data-text=""></h2>
+            <span id="m-role" class="m-role"></span>
+            <div id="m-text" class="m-text"></div>
+            <a href="register.html" id="m-btn-join" class="btn-join" style="display:none; margin-top:30px; border-color:#0f0; color:#0f0;">INITIATE SYNC</a>
+        </div>
+    </div>
+
+    <script src="../session_store.js"></script>
+    <script src="../system.js"></script>
+    <script>
+        let allUsers = [];
+        let currentCode = null;
+
+        // ФУНКЦІЯ ЗАВАНТАЖЕННЯ users.json (завжди свіжі дані, без кешу)
+        async function loadUsers() {
+            // Перевірка протоколу
+            if (window.location.protocol === 'file:') {
+                throw new Error('File protocol detected. Please use HTTP server.');
+            }
+            
+            // Формуємо абсолютний URL для надійності
+            const baseUrl = window.location.origin;
+            const relativePath = '../get_users.php';
+            const absolutePath = baseUrl + '/get_users.php';
+            const cacheBuster = '?t=' + Date.now() + '&nocache=' + Math.random();
+            
+            // Спробуємо спочатку відносний шлях, потім абсолютний
+            const urlsToTry = [
+                relativePath + cacheBuster,
+                absolutePath + cacheBuster
+            ];
+            
+            let lastError = null;
+            
+            for (const url of urlsToTry) {
+                try {
+                    console.log('[PERSONNEL] Trying URL:', url);
+                    
+                    // Створюємо новий Request щоб обійти Service Worker кеш
+                    const request = new Request(url, {
+                        cache: 'no-store',
+                        mode: 'cors',
+                        credentials: 'same-origin',
+                        headers: {
+                            'Cache-Control': 'no-cache, no-store, must-revalidate',
+                            'Pragma': 'no-cache',
+                            'Expires': '0'
+                        }
+                    });
+                    
+                    // Завжди завантажуємо свіжі дані з сервера, без кешу
+                    const res = await fetch(request);
+                    
+                    if (!res.ok) {
+                        throw new Error('HTTP ' + res.status + ': ' + res.statusText);
+                    }
+                    
+                    const users = await res.json();
+                    console.log('[PERSONNEL] Successfully loaded from:', url);
+                    console.log('[PERSONNEL] Loaded:', users.length, 'users');
+                    return users;
+                } catch (error) {
+                    console.warn('[PERSONNEL] Failed to load from', url + ':', error.message);
+                    lastError = error;
+                    // Продовжуємо до наступного URL
+                    continue;
+                }
+            }
+            
+            // Якщо всі спроби не вдалися
+            console.error('[PERSONNEL] All URLs failed. Last error:', lastError);
+            const errorMsg = lastError ? lastError.message : 'Unknown error';
+            if (errorMsg.includes('Failed to fetch') || errorMsg.includes('NetworkError') || errorMsg.includes('CORS')) {
+                throw new Error(`Cannot load get_users.php. Tried: ${urlsToTry.join(', ')}. Check file exists and CORS is configured.`);
+            }
+            throw lastError || new Error('Failed to load get_users.php');
+        }
+
+        async function loadPersonnelData() {
+            try {
+                currentCode = (window.helixSessionStore && typeof window.helixSessionStore.getAccessCode === 'function')
+                    ? (window.helixSessionStore.getAccessCode() || null)
+                    : null;
+                if (!currentCode) {
+                    var sp = new URLSearchParams(window.location.search);
+                    currentCode = sp.get('code') || sessionStorage.getItem('helix_access_code') || null;
+                }
+            } catch (e) {
+                currentCode = new URLSearchParams(window.location.search).get('code') || sessionStorage.getItem('helix_access_code') || null;
+            }
+            ['olympus', 'origin', 'themis'].forEach(id => {
+                const el = document.getElementById('list-'+id);
+                if (el) el.innerHTML = '<div style="color:#555; padding:20px; text-align:center;">Завантаження...</div>';
+            });
+            try {
+                const users = await loadUsers();
+                if (!Array.isArray(users)) throw new Error('get_users.php did not return an array');
+                allUsers = users.filter(u => {
+                    if (!u || typeof u !== 'object') return false;
+                    if (u.role === 'GAMEMASTER' || u.chapter === 'admin' || u.access_code === 'HELIX2025') return false;
+                    return u.chapter === 'ch2' && u.faction && ['OLYMPOS', 'ORIGIN', 'THEMIS', 'MOIRAI'].includes(u.faction);
+                });
+                renderColumns();
+            } catch (e) {
+                console.error('[PERSONNEL ERROR]', e);
+                showPersonnelError();
+            }
+        }
+
+        function showPersonnelError() {
+            const msg = 'Не вдалося завантажити дані. Спробуйте пізніше.';
+            ['olympus', 'origin', 'themis', 'moirai'].forEach(id => {
+                const el = document.getElementById('list-'+id);
+                if (el) {
+                    el.innerHTML = '<div style="padding:24px; text-align:center;">' +
+                        '<p style="color:#ccc;">' + msg + '</p>' +
+                        '</div>';
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadPersonnelData();
+        });
+
+        function renderColumns() {
+            ['olympus', 'origin', 'themis', 'moirai'].forEach(id => {
+                const el = document.getElementById('list-'+id);
+                if (el) el.innerHTML = "";
+            });
+            
+            if (allUsers.length === 0) {
+                ['olympus', 'origin', 'themis', 'moirai'].forEach(id => {
+                    const el = document.getElementById('list-'+id);
+                    if (el) el.innerHTML = '<div style="color:#555; padding:20px; text-align:center; font-size:0.8rem;">Немає персонажів</div>';
+                });
+                return;
+            }
+            
+            const GREEK = ['Α','Β','Γ','Δ','Ε','Ζ','Η','Θ','Ι','Κ','Λ','Μ','Ν','Ξ','Ο','Π','Ρ','Σ','Τ','Υ','Φ','Χ','Ψ','Ω'];
+            allUsers.forEach((u, i) => {
+                const card = createCard(u, GREEK[i % GREEK.length]);
+                const f = (u.faction || "").toUpperCase().trim();
+                let targetEl = null;
+                
+                if (f === 'OLYMPOS') {
+                    targetEl = document.getElementById('list-olympus');
+                } else if (f === 'ORIGIN') {
+                    targetEl = document.getElementById('list-origin');
+                } else if (f === 'THEMIS') {
+                    targetEl = document.getElementById('list-themis');
+                } else if (f === 'MOIRAI') {
+                    targetEl = document.getElementById('list-moirai');
+                } else {
+                    console.warn('[PERSONNEL] User without valid faction:', u.name, 'faction:', f);
+                    return;
+                }
+                
+                if (targetEl) {
+                    targetEl.appendChild(card);
+                } else {
+                    console.error('[PERSONNEL] Target element not found for faction:', f);
+                }
+            });
+        }
+
+        function createCard(u, greekLetter) {
+            const isCurrent = currentCode && u.access_code === currentCode;
+            const isFree = (u.booking_status === 'free') && !isCurrent;
+            const isOccupied = !isFree && !isCurrent;
+            const div = document.createElement('div');
+            div.className = 'god-card';
+            div.onclick = () => openBio(u.id);
+
+            const serial = (u.access_code || u.id || '').toString().slice(0, 10);
+            let badgeHTML = '';
+            if (isCurrent) {
+                badgeHTML = '<div class="badge-open" style="border-color:#0ff;color:#0ff;">YOU</div>';
+            } else if (isFree) {
+                badgeHTML = '<div class="badge-open">ВІЛЬНА</div>';
+            } else if (isOccupied) {
+                badgeHTML = '<div class="badge-open" style="border-color:#f55;color:#f55;">ЗАЙНЯТА</div>';
+            }
+            
+            function esc(s) { if (s == null) return ''; const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+            const safeName = esc(u.name);
+            const safeRole = esc(u.role || 'Unknown');
+            let nameHTML = safeName;
+            let xtraStyle = "";
+            if ((u.stats?.status) === 'DEAD') {
+                 xtraStyle = "opacity:0.5; filter: grayscale(100%);";
+                 nameHTML = '<span style="text-decoration:line-through; color:#555;">' + safeName + '</span> †';
+            }
+
+            const letter = (greekLetter != null && greekLetter !== '') ? greekLetter : 'Ω';
+            const code = (u.access_code || u.id || '').toString().trim();
+            const avatarBase = code ? '../uploads/' + encodeURIComponent(code) : '';
+            const ts = Date.now();
+            const avatarHtml = code
+                ? `<span class="g-avatar-fallback">${letter}</span><img src="${avatarBase}.jpg?t=${ts}" alt="" onerror="var i=this,s=i.src;if(s.indexOf('.jpg')!==-1){i.src=s.replace('.jpg','.png');}else{i.style.display='none';var p=i.previousElementSibling;if(p)p.style.display='flex';}">`
+                : `<span class="g-avatar-fallback">${letter}</span>`;
+            div.style.cssText = xtraStyle;
+            div.innerHTML = `
+                <span class="card-glitch-line"></span>
+                <span class="card-serial">${serial}</span>
+                <div class="g-avatar" aria-hidden="true">${avatarHtml}</div>
+                <div class="g-info">
+                    <div class="g-name">${nameHTML}</div>
+                    <div class="g-role">${safeRole}</div>
+                </div>
+                ${badgeHTML}
+            `;
+            return div;
+        }
+
+        const GREEK_LETTERS = ['Α','Β','Γ','Δ','Ε','Ζ','Η','Θ','Ι','Κ','Λ','Μ','Ν','Ξ','Ο','Π','Ρ','Σ','Τ','Υ','Φ','Χ','Ψ','Ω'];
+        function openBio(id) {
+            const u = allUsers.find(u => u.id === id);
+            if (!u) return;
+            
+            const nameEl = document.getElementById('m-name');
+            nameEl.innerText = u.name;
+            nameEl.setAttribute('data-text', u.name);
+            
+            document.getElementById('m-role').innerText = u.role + " // " + u.faction;
+            document.getElementById('m-text').innerText = u.history || "No data.";
+            
+            const idx = allUsers.findIndex(x => x.id === id);
+            const symbolEl = document.getElementById('m-symbol');
+            const letter = GREEK_LETTERS[idx % GREEK_LETTERS.length] || 'Ω';
+            const code = (u.access_code || u.id || '').toString().trim();
+            if (symbolEl) {
+                symbolEl.textContent = '';
+                if (code) {
+                    const img = document.createElement('img');
+                    img.alt = '';
+                    img.src = '../uploads/' + encodeURIComponent(code) + '.jpg?t=' + Date.now();
+                    img.onerror = function() {
+                        if (this.src.indexOf('.png') !== -1) {
+                            symbolEl.textContent = letter;
+                            if (img.parentNode) symbolEl.removeChild(img);
+                        } else {
+                            this.src = '../uploads/' + encodeURIComponent(code) + '.png?t=' + Date.now();
+                        }
+                    };
+                    symbolEl.appendChild(img);
+                } else {
+                    symbolEl.textContent = letter;
+                }
+            }
+            
+            const btn = document.getElementById('m-btn-join');
+            if (u.booking_status === 'free') btn.style.display = 'inline-block';
+            else btn.style.display = 'none';
+
+            document.getElementById('bio-modal').style.display = 'flex';
+        }
+    </script>
+</body>
+</html>

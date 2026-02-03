@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>HELIX | PANDORA HUB</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="../style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Courier+New&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Courier+New&display=swap" rel="stylesheet"></noscript>
+    <style>
+        /* --- TECHNO-GLITCH DESIGN --- */
+        body { 
+            background-color: #050505; 
+            background-image: radial-gradient(circle at 50% 30%, #111 0%, #000 80%);
+            color: #ddd; font-family: 'Courier New', monospace; 
+            margin: 0; padding: 0; min-height: 100vh;
+            display: flex; flex-direction: column;
+        }
+
+        .chapter-container { 
+            width: 100%; max-width: 560px; padding: 12px 14px; margin: 0 auto; 
+            box-sizing: border-box; display: flex; flex-direction: column;
+        }
+        @media (max-width: 480px) {
+            .chapter-container { padding-left: max(12px, env(safe-area-inset-left)); padding-right: max(12px, env(safe-area-inset-right)); padding-bottom: env(safe-area-inset-bottom, 12px); }
+            .chapter-title { font-size: 1.6rem; letter-spacing: 2px; }
+            .mission-info, .status-panel { flex-wrap: wrap; gap: 6px; }
+            .menu-grid { grid-template-columns: 1fr; }
+            .menu-btn { min-height: 60px; }
+            .btn-main { padding: 12px; font-size: 0.9rem; min-height: 44px; }
+        }
+
+        /* HEADER — компактніше */
+        .chapter-header { text-align: center; margin-bottom: 10px; border-bottom: 1px solid rgba(0, 240, 255, 0.25); padding-bottom: 10px; }
+        .chapter-subtitle { color: var(--accent-cyan); font-size: 0.6rem; letter-spacing: 3px; margin-bottom: 2px; opacity: 0.8; text-transform: uppercase; }
+        .chapter-title { 
+            font-size: 2rem; color: #fff; margin: 0; 
+            text-transform: uppercase; letter-spacing: 4px; line-height: 1; 
+            position: relative; display: inline-block; font-family: 'Cinzel', serif;
+        }
+
+        /* PANELS — компактніше */
+        .mission-info {
+            display: flex; justify-content: space-between;
+            border: 1px dashed var(--accent-gold);
+            background: rgba(255, 215, 0, 0.04);
+            padding: 10px 12px; margin-bottom: 12px;
+            font-size: 0.7rem; letter-spacing: 1px;
+            color: var(--accent-gold); text-transform: uppercase;
+        }
+        .info-label { opacity: 0.7; font-size: 0.55rem; display: block; margin-bottom: 2px; }
+        .info-val { font-weight: bold; font-size: 0.85rem; }
+
+        .status-panel {
+            display: flex; justify-content: space-between; background: rgba(0, 20, 20, 0.5);
+            border: 1px solid #333; padding: 8px 12px; margin-bottom: 14px;
+            font-size: 0.65rem; letter-spacing: 1px;
+        }
+        .stat-item { display: flex; align-items: center; gap: 6px; }
+        .dot { width: 6px; height: 6px; border-radius: 50%; background: #333; }
+        .dot.green { background: #0f0; box-shadow: 0 0 4px #0f0; }
+        .dot.red { background: #f00; animation: blink 0.5s infinite; }
+
+        .log-box {
+            background: rgba(10, 10, 10, 0.8); border-left: 3px solid var(--accent-cyan);
+            padding: 14px 16px; margin-bottom: 16px; font-size: 0.85rem; line-height: 1.5;
+            color: #ccc; box-shadow: 0 0 15px rgba(0,0,0,0.4); text-align: justify;
+        }
+        .highlight { color: #fff; font-weight: bold; }
+        .warning { color: var(--accent-red); animation: text-flicker 3s infinite; }
+
+        /* BUTTONS — компактніше */
+        .btn-main {
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            width: 100%; padding: 14px; background: rgba(0, 50, 50, 0.35);
+            border: 1px solid var(--accent-cyan); color: var(--accent-cyan);
+            text-transform: uppercase; font-weight: bold; text-decoration: none;
+            font-size: 0.95rem; letter-spacing: 2px; transition: 0.3s;
+            margin-bottom: 16px; box-sizing: border-box;
+        }
+        .btn-main:hover { background: var(--accent-cyan); color: #000; box-shadow: 0 0 16px rgba(0, 240, 255, 0.35); }
+
+        /* MENU GRID — компактніше */
+        .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        
+        .menu-btn {
+            background: #0f0f0f; border: 1px solid #333; color: #888;
+            padding: 10px 6px; text-align: center; text-decoration: none; text-transform: uppercase;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            height: 68px; transition: 0.3s; cursor: pointer;
+        }
+        .menu-btn:hover { border-color: #fff; color: #fff; background: #1a1a1a; transform: translateY(-2px); }
+        
+        .btn-id { border-top: 3px solid var(--accent-gold); color: var(--accent-gold); }
+        .btn-id:hover { background: rgba(255, 215, 0, 0.08); box-shadow: 0 0 12px rgba(255, 215, 0, 0.08); }
+        
+        .btn-reg { border-color: #555; position: relative; }
+        .btn-reg:hover { border-color: var(--accent-cyan); color: var(--accent-cyan); }
+        .new-badge { position: absolute; top: 4px; right: 4px; font-size: 0.45rem; background: var(--accent-red); color: #fff; padding: 1px 3px; }
+
+        .btn-icon { font-size: 1.35rem; margin-bottom: 6px; opacity: 0.85; }
+        .btn-text { font-size: 0.6rem; letter-spacing: 0.5px; line-height: 1.2; }
+
+        /* MODALS */
+        #start-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; padding-bottom: max(48px, env(safe-area-inset-bottom)); transition: opacity 0.5s ease; }
+        #start-screen h2 { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); margin: 0; }
+        .start-audio-btns { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+        .btn-audio { background: rgba(0,240,255,0.1); border: 1px solid var(--accent-cyan); color: var(--accent-cyan); padding: 12px 32px; cursor: pointer; text-transform: uppercase; font-weight: bold; letter-spacing: 2px; }
+        .btn-silent { background: transparent; border: none; color: #555; cursor: pointer; text-decoration: underline; font-size: 0.85rem; }
+
+        .overlay-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 10000; display: none; flex-direction: column; justify-content: center; align-items: center; }
+        .login-input { width: 250px; padding: 12px; background: #000; border: 1px solid #fff; color: #fff; font-family: inherit; font-size: 1.2rem; text-align: center; margin-bottom: 20px; text-transform: uppercase; outline: none; }
+        .close-btn { position: absolute; top: 30px; right: 30px; color: #555; cursor: pointer; font-size: 3rem; }
+        .btn-gateway { background: transparent; border: 1px dashed var(--accent-gold); color: var(--accent-gold); padding: 15px; cursor: pointer; font-family: inherit; text-transform: uppercase; width: 200px; }
+        .btn-gateway:hover { background: rgba(255, 215, 0, 0.1); box-shadow: 0 0 15px rgba(255, 215, 0, 0.2); }
+
+        @keyframes text-flicker { 0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% { opacity: 1; } 20%, 24%, 55% { opacity: 0.5; } }
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <div id="start-screen">
+        <h2 style="color:#fff; letter-spacing:5px; font-family:'Cinzel'">INITIALIZING...</h2>
+        <div class="start-audio-btns">
+            <button class="btn-audio" onclick="saveAudioPref(true)">CONNECT AUDIO</button>
+            <button class="btn-silent" onclick="saveAudioPref(false)">Mute System</button>
+        </div>
+    </div>
+
+    <div id="gateway-screen" class="overlay-screen">
+        <div class="close-btn" onclick="closeGateway()">×</div>
+        <h2 style="color: #fff; margin-bottom: 20px; letter-spacing: 3px;">PERSONAL ACCESS</h2>
+        <input type="password" id="gateway-input" class="login-input" placeholder="ACCESS CODE">
+        <button class="btn-gateway" onclick="processLogin()">CONNECT</button>
+        <p id="gateway-msg" style="margin-top: 15px; color: var(--accent-red); height: 20px; font-size: 0.8rem; text-align:center;"></p>
+    </div>
+
+    <div class="chapter-container">
+        
+        <div class="chapter-header">
+            <div class="chapter-subtitle">SECTOR 2 // DEEP STORAGE</div>
+            <div class="chapter-title">
+                PANDORA
+            </div>
+        </div>
+
+        <div class="mission-info">
+            <div><span class="info-label">DATE START:</span><span class="info-val" style="color:#00f0ff;">14.03.2026</span></div>
+            <div style="text-align: right;"><span class="info-label">LOCATION:</span><span class="info-val">BUNKER-42</span></div>
+        </div>
+
+        <div class="status-panel">
+            <div class="stat-item"><span class="dot green"></span> SYS: ONLINE</div>
+            <div class="stat-item"><span class="dot red"></span> AIR: CRITICAL</div>
+            <div class="stat-item">TEMP: -42°C</div>
+        </div>
+
+        <div class="log-box">
+            <p style="margin-top:0;"><span class="accent">> LAST LOG ENTRY:</span><br>Ми думали, що нас евакуювали. Це була брехня. Нас просто перемістили в іншу клітку.</p>
+            <p>Бункер "Пандора" — це не сховище. Це лабораторія. Тут <span class="warning">Чорна Рідина</span> тече по трубах замість води.</p>
+            <p style="margin-bottom:0;">Ти чуєш це? Голос у твоїй голові. Він каже: <span class="highlight">"Прийми зміни або стань історією"</span>.</p>
+        </div>
+
+        <div style="text-align: center; color: var(--accent-gold); font-size: 0.65rem; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">⚠️ Калібрування обов'язкове</div>
+
+        <a href="test.html" class="btn-main">
+            <span style="animation: blink 2s infinite;">●</span> ПОЧАТИ ТЕСТ K.I.R.A.
+        </a>
+
+        <div class="menu-grid">
+            <div onclick="checkProfileAccess()" class="menu-btn btn-id" role="button" tabindex="0" aria-label="Відкрити особистий кабінет" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();checkProfileAccess();}">
+                <span class="btn-icon">🆔</span>
+                <span class="btn-text">ОСОБИСТИЙ<br>КАБІНЕТ</span>
+            </div>
+            
+            <a href="register.html" class="menu-btn btn-reg" aria-label="Подати кандидатуру на роль">
+                <span class="new-badge">OPEN</span>
+                <span class="btn-icon">📝</span>
+                <span class="btn-text">ПОДАТИ<br>КАНДИДАТУРУ</span>
+            </a>
+
+            <a href="personnel.html" class="menu-btn" aria-label="Особові справи персоналу">
+                <span class="btn-icon">📂</span>
+                <span class="btn-text">ОСОБОВІ<br>СПРАВИ</span>
+            </a>
+            
+            <a href="../lore.html" class="menu-btn" aria-label="Архів Pravda">
+                <span class="btn-icon">👁️</span>
+                <span class="btn-text">АРХІВ<br>PRAVDA</span>
+            </a>
+        </div>
+
+        <div style="text-align: center; margin-top: 24px; opacity: 0.6;">
+            <a href="../index.html" style="color: #666; font-size: 0.65rem; text-decoration: none; border-bottom: 1px solid #444;">[ < DISCONNECT ]</a>
+        </div>
+
+    </div>
+
+    <script src="../session_store.js"></script>
+    <script src="../auth.js"></script>
+    <script src="../a11y.js"></script>
+    <script src="../system.js"></script>
+    <script>
+        // АУДІО
+        (function checkAudioPref() {
+            const savedTime = localStorage.getItem('helix_audio_time');
+            if (savedTime && (Date.now() - savedTime < 4 * 24 * 3600 * 1000)) {
+                document.getElementById('start-screen').style.display = 'none';
+            }
+        })();
+
+        function saveAudioPref(enable) {
+            localStorage.setItem('helix_audio_pref', enable);
+            localStorage.setItem('helix_audio_time', Date.now());
+            document.getElementById('start-screen').style.display = 'none';
+            if (enable && window.initAudioContext) window.initAudioContext();
+        }
+
+        // ЛОГІН ЛОГІКА
+        function checkProfileAccess() {
+            const accessCode = (window.helixSessionStore && helixSessionStore.getAccessCode) ? helixSessionStore.getAccessCode() : null;
+            if (accessCode) {
+                window.location.href = 'profile.html?code=' + accessCode;
+            } else {
+                document.getElementById('gateway-screen').style.display = 'flex';
+                document.getElementById('gateway-input').focus();
+                var href = '../get_users.php';
+                if (!document.querySelector('link[href="' + href + '"][as="fetch"]')) {
+                    var link = document.createElement('link');
+                    link.rel = 'preload';
+                    link.as = 'fetch';
+                    link.href = href;
+                    document.head.appendChild(link);
+                }
+            }
+        }
+
+        function closeGateway() {
+            document.getElementById('gateway-screen').style.display = 'none';
+        }
+
+        function processLogin() {
+            const val = document.getElementById('gateway-input').value.trim();
+            const msg = document.getElementById('gateway-msg');
+            const btn = document.querySelector('.btn-gateway');
+
+            if (!val) return;
+
+            if (val === "HELIX2025") {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '../admin.php';
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'login_pass';
+                input.value = val;
+                form.appendChild(input);
+                document.body.appendChild(form);
+                form.submit();
+                return;
+            }
+
+            if (!window.helixAuth || !window.helixAuth.loginPlayer) {
+                msg.style.color = "var(--accent-red)";
+                msg.innerText = "Помилка: auth.js не завантажено.";
+                return;
+            }
+            window.helixAuth.loginPlayer(val, {
+                msgElement: msg,
+                buttonElement: btn,
+                validateUser: function (user) { return user.chapter === 'ch2'; },
+                onSuccess: function (user) {
+                    setTimeout(function () { window.location.href = "profile.html?code=" + (user.access_code || ''); }, 800);
+                }
+            });
+        }
+
+        document.getElementById('gateway-input').addEventListener("keypress", (e) => { 
+            if (e.key === "Enter") processLogin(); 
+        });
+    </script>
+</body>
+</html>

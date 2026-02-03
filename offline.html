@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HELIX | OFFLINE</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: #000;
+      color: #ccc;
+      font-family: 'Courier New', monospace;
+      text-align: center;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    .box {
+      max-width: 420px;
+      border: 1px dashed var(--accent-cyan);
+      padding: 25px;
+      background: rgba(0, 0, 0, 0.8);
+    }
+    .title {
+      letter-spacing: 4px;
+      margin-bottom: 10px;
+      color: var(--accent-cyan);
+      text-transform: uppercase;
+    }
+    .msg {
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+    .hint {
+      margin-top: 15px;
+      font-size: 0.75rem;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <div class="title">SYSTEM: OFFLINE MODE</div>
+    <div class="msg">
+      З'єднання з сервером втрачено.<br>
+      Ви працюєте у локальному режимі HELIX.<br><br>
+      Доступні кешовані сторінки, профіль та архіви.<br>
+      Онлайн-функції (QR, завантаження фото, адмін-панель) можуть бути недоступні.
+    </div>
+    <div class="hint">
+      Підключіть інтернет і перезапустіть застосунок,<br>щоб відновити повну функціональність.
+    </div>
+  </div>
+</body>
+</html>
+

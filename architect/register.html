@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>HEΛIX — РЕЄСТРАЦІЯ | YGGDRASIL</title>
+    <link rel="stylesheet" href="../style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --ygg-bg: #0a0e12;
+            --ygg-panel: #0d1117;
+            --ygg-border: #1a2332;
+            --ygg-ice: #4a90a4;
+            --ygg-text: #b8c4ce;
+            --ygg-bright: #e2e8f0;
+        }
+        body { background: var(--ygg-bg); color: var(--ygg-text); font-family: 'Share Tech Mono', monospace; min-height: 100vh; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; }
+        .container { width: 100%; max-width: 560px; }
+        .nav-top { margin-bottom: 24px; }
+        .nav-top a { color: var(--ygg-ice); text-decoration: none; font-size: 0.85rem; }
+        .nav-top a:hover { color: var(--ygg-bright); }
+        h2 { text-align: center; color: var(--ygg-ice); font-family: 'Cinzel', serif; margin-bottom: 24px; font-size: 1.2rem; }
+        .step-section { display: none; }
+        .step-section.current { display: block; animation: fadeIn 0.5s; }
+        input, select { width: 100%; background: var(--ygg-panel); border: 1px solid var(--ygg-border); color: var(--ygg-bright); padding: 14px; margin-bottom: 16px; font-family: inherit; box-sizing: border-box; }
+        input.error { border-color: #f55; }
+        .field-error { font-size: 0.75rem; color: #f55; margin-top: -8px; margin-bottom: 8px; }
+        label { font-size: 0.75rem; color: var(--ygg-ice); display: block; margin-bottom: 4px; }
+        .btn-next { width: 100%; padding: 16px; border: 1px solid var(--ygg-ice); color: var(--ygg-ice); background: transparent; cursor: pointer; text-transform: uppercase; font-weight: bold; font-family: inherit; box-sizing: border-box; }
+        .btn-next:hover { background: rgba(74, 144, 164, 0.2); color: var(--ygg-bright); }
+        .btn-next:disabled { opacity: 0.5; cursor: not-allowed; }
+        .msg-error { color: #f55; margin-top: 12px; font-size: 0.85rem; }
+        .msg-success { color: #0f0; }
+        .link-back { display: block; text-align: center; margin-top: 20px; }
+        .link-back a { color: var(--ygg-text); font-size: 0.8rem; }
+        .link-back a:hover { color: var(--ygg-ice); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; } }
+        @media (max-width: 480px) {
+            body { padding: 12px; padding-left: max(12px, env(safe-area-inset-left)); padding-right: max(12px, env(safe-area-inset-right)); }
+            input, select { padding: 12px; min-height: 44px; }
+            .btn-next { min-height: 48px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="nav-top"><a href="index.html">← Назад до YGGDRASIL</a></div>
+        <h2>РЕЄСТРАЦІЯ — СЕКТОР YGGDRASIL</h2>
+
+        <div id="step-1" class="step-section current">
+            <input type="text" id="inp-name" placeholder="CALLSIGN / NAME" maxlength="100">
+            <div id="err-name" class="field-error" style="display:none;"></div>
+            <input type="text" id="inp-tg" placeholder="TELEGRAM (@username або t.me/username)">
+            <div id="err-tg" class="field-error" style="display:none;"></div>
+            <label>ОБЕРІТЬ ФРАКЦІЮ:</label>
+            <select id="inp-faction" onchange="updateRoles()">
+                <option value="" disabled selected>— оберіть —</option>
+                <option value="OLYMPOS">OLYMPOS</option>
+                <option value="ORIGIN">ORIGIN</option>
+                <option value="THEMIS">THEMIS</option>
+            </select>
+            <label>ОБЕРІТЬ ВІЛЬНУ ПОЗИЦІЮ:</label>
+            <select id="inp-role-pref" disabled>
+                <option value="" disabled selected>— завантаження —</option>
+            </select>
+            <div id="err-role" class="field-error" style="display:none;"></div>
+            <button type="button" class="btn-next" id="btn-submit" onclick="nextStep(2)">НАДІСЛАТИ</button>
+            <p id="submit-msg" class="msg-error" style="display:none;"></p>
+            <div class="link-back"><a href="index.html">Повернутися до YGGDRASIL</a></div>
+        </div>
+
+        <div id="step-2" class="step-section" style="text-align:center;">
+            <h1 id="step2-title" style="color:#0f0;">ПРИЙНЯТО</h1>
+            <p id="step2-text">Заявку прийнято. Очікуйте підтвердження.</p>
+            <a href="index.html" class="btn-next" style="display:inline-block; text-decoration:none; margin-top:16px;">ПОВЕРНУТИСЯ</a>
+        </div>
+    </div>
+
+    <script>
+        var ERR_MSG = 'Не вдалося завантажити дані. Спробуйте пізніше.';
+        var dbUsers = [];
+
+        function validateTelegram(tg) {
+            if (!tg || !tg.trim()) return true;
+            var v = tg.trim();
+            return /^@[\w]{4,32}$/.test(v) || /^t\.me\/[\w]{4,32}$/i.test(v) || /^[\w]{4,32}$/.test(v);
+        }
+        function showFieldError(id, text) {
+            var el = document.getElementById(id);
+            if (!el) return;
+            el.style.display = text ? 'block' : 'none';
+            el.textContent = text || '';
+        }
+        function setInputError(inputId, hasError) {
+            var el = document.getElementById(inputId);
+            if (el) el.classList.toggle('error', !!hasError);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            var url = '../get_users.php?t=' + Date.now() + '&nocache=' + Math.random();
+            fetch(url, { cache: 'no-store', headers: { 'Cache-Control': 'no-cache' } })
+                .then(function(r) { return r.json(); })
+                .then(function(arr) { dbUsers = Array.isArray(arr) ? arr : []; })
+                .catch(function() { alert(ERR_MSG); });
+        });
+
+        function updateRoles() {
+            var faction = document.getElementById('inp-faction').value;
+            var select = document.getElementById('inp-role-pref');
+            showFieldError('err-role', '');
+            setInputError('inp-role-pref', false);
+            if (!faction) {
+                select.innerHTML = "<option value='' disabled selected>— спочатку оберіть фракцію —</option>";
+                select.disabled = true;
+                return;
+            }
+            select.innerHTML = "<option value='' disabled selected>— завантаження —</option>";
+            select.disabled = true;
+            var url = '../get_users.php?t=' + Date.now();
+            fetch(url, { cache: 'no-store' })
+                .then(function(r) { return r.json(); })
+                .then(function(freshUsers) {
+                    if (!Array.isArray(freshUsers)) return;
+                    dbUsers = freshUsers;
+                    var available = dbUsers.filter(function(u) {
+                        if (!u || typeof u !== 'object') return false;
+                        if (u.role === 'GAMEMASTER' || u.chapter === 'admin' || u.access_code === 'HELIX2025') return false;
+                        return u.chapter === 'ch2' && u.faction === faction && (u.booking_status === 'free' || !u.booking_status);
+                    });
+                    select.innerHTML = '';
+                    select.disabled = false;
+                    var optDefault = document.createElement('option');
+                    optDefault.value = '';
+                    optDefault.disabled = true;
+                    optDefault.selected = true;
+                    optDefault.innerText = '— оберіть роль —';
+                    select.appendChild(optDefault);
+                    if (available.length === 0) {
+                        var opt = document.createElement('option');
+                        opt.value = '';
+                        opt.disabled = true;
+                        opt.innerText = 'Немає вільних позицій';
+                        select.appendChild(opt);
+                    } else {
+                        available.forEach(function(u) {
+                            var opt = document.createElement('option');
+                            opt.value = (u.role || '') + ' (' + (u.name || '') + ')';
+                            opt.innerText = (u.role || '') + ' // ' + (u.name || '');
+                            select.appendChild(opt);
+                        });
+                    }
+                })
+                .catch(function() {
+                    select.innerHTML = "<option value='' disabled selected>— помилка —</option>";
+                    select.disabled = true;
+                });
+        }
+
+        function nextStep(n) {
+            if (n !== 2) return;
+            var name = (document.getElementById('inp-name').value || '').trim();
+            var tg = (document.getElementById('inp-tg').value || '').trim();
+            var faction = document.getElementById('inp-faction').value;
+            var rolePref = (document.getElementById('inp-role-pref').value || '').trim();
+            var btn = document.getElementById('btn-submit');
+            var msgEl = document.getElementById('submit-msg');
+
+            showFieldError('err-name', '');
+            showFieldError('err-tg', '');
+            showFieldError('err-role', '');
+            setInputError('inp-name', false);
+            setInputError('inp-tg', false);
+            setInputError('inp-role-pref', false);
+            msgEl.style.display = 'none';
+
+            var valid = true;
+            if (!name) { showFieldError('err-name', 'Введіть ім\'я або позивний.'); setInputError('inp-name', true); valid = false; }
+            if (!validateTelegram(tg)) { showFieldError('err-tg', 'Невірний формат Telegram.'); setInputError('inp-tg', true); valid = false; }
+            if (!rolePref) { showFieldError('err-role', 'Оберіть позицію.'); setInputError('inp-role-pref', true); valid = false; }
+            if (!valid) return;
+
+            btn.disabled = true;
+            btn.textContent = 'Надсилання...';
+
+            fetch('../register_handler.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: name,
+                    tg: tg,
+                    faction_pref: faction,
+                    role_pref: rolePref,
+                    anon: false,
+                    psy: [],
+                    lore: {}
+                })
+            })
+            .then(function(r) { return r.json().catch(function() { return {}; }); })
+            .then(function(json) {
+                if (json.ok) {
+                    document.getElementById('step-1').classList.remove('current');
+                    document.getElementById('step-1').style.display = 'none';
+                    document.getElementById('step-2').style.display = 'block';
+                    document.getElementById('step-2').classList.add('current');
+                    document.getElementById('step2-title').textContent = 'ПРИЙНЯТО';
+                    document.getElementById('step2-title').className = 'msg-success';
+                    document.getElementById('step2-text').textContent = 'Заявку прийнято. Очікуйте підтвердження.';
+                } else {
+                    msgEl.textContent = (json && json.error) ? json.error : 'Помилка сервера.';
+                    msgEl.style.display = 'block';
+                }
+            })
+            .catch(function() {
+                msgEl.textContent = ERR_MSG;
+                msgEl.style.display = 'block';
+            })
+            .then(function() {
+                btn.disabled = false;
+                btn.textContent = 'НАДІСЛАТИ';
+            });
+        }
+    </script>
+</body>
+</html>

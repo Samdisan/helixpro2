@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ILARIA | Terminal v2.0</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="crt-overlay"></div>
+    <div class="scanline"></div>
+    
+    <div class="terminal-wrapper">
+        <header class="header-status">
+            <div class="top-bar">
+                <span class="location">LOC: SECTOR_3_DEEP_LEVEL</span>
+                <span class="system-id">SYS: HEΛIX_CORE</span>
+                <span class="status-warning">STATUS: YELLOW 🟡</span>
+            </div>
+            <h1 class="glitch" data-text="ІНІЦІАЛІЗАЦІЯ ЛАБОРАТОРІЇ">ІНІЦІАЛІЗАЦІЯ ЛАБОРАТОРІЇ</h1>
+        </header>
+
+        <section class="selection-grid">
+            <article class="sector-card" onclick="selectLab('LOGOS')">
+                <div class="tag">🧠 ARCHITECT</div>
+                <h2>🧬 LOGOS</h2>
+                <p class="description">Робота з кодом Pandora Protocol та когнітивними дзеркалами ШР.</p>
+                <div class="resource">РЕСУРС: +10 до Дешифрування</div>
+                <div class="warning">РИЗИК: Психологічний зсув</div>
+            </article>
+
+            <article class="sector-card" onclick="selectLab('VESSEL')">
+                <div class="tag">🩸 ORIGIN</div>
+                <h2>🧪 VESSEL</h2>
+                <p class="description">Дослідження Black Goo та стабілізація мутацій "Чистої крові".</p>
+                <div class="resource">РЕСУРС: +10 до Біохімії</div>
+                <div class="warning">РИЗИК: Пряме зараження</div>
+            </article>
+
+            <article class="sector-card" onclick="selectLab('HORKOS')">
+                <div class="tag">⚖️ THEMIS</div>
+                <h2>🛡️ HORKOS</h2>
+                <p class="description">Юридичний нагляд, аудит персоналу та протоколи стерилізації.</p>
+                <div class="resource">РЕСУРС: Право вето (1 раз)</div>
+                <div class="warning">РИЗИК: Пріоритетна ціль</div>
+            </article>
+        </section>
+
+        <footer class="console-footer">
+            <div id="typewriter">> Очікування вибору спеціаліста...</div>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>HEΛIX — YGGDRASIL</title>
+    <link rel="stylesheet" href="../style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --norse-bg: #0d120c;
+            --norse-bark: #1c1812;
+            --norse-panel: #161a14;
+            --norse-border: #2e2a1c;
+            --norse-ice: #8b9cb5;
+            --norse-gold: #c9a227;
+            --norse-moss: #1e2d1a;
+            --norse-text: #d8d4c8;
+            --norse-bright: #f0ece0;
+            --norse-rune: rgba(201, 162, 39, 0.25);
+        }
+        * { box-sizing: border-box; }
+        html, body { height: 100%; margin: 0; overflow: hidden; }
+        body {
+            background: var(--norse-bg);
+            color: var(--norse-text);
+            font-family: 'Cinzel', serif;
+            font-size: 14px;
+            line-height: 1.45;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background:
+                linear-gradient(180deg, transparent 0%, rgba(28, 24, 18, 0.35) 50%, transparent 100%),
+                radial-gradient(ellipse 90% 40% at 50% 10%, var(--norse-moss) 0%, transparent 55%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        .rune-strip {
+            width: 100%;
+            text-align: center;
+            padding: 4px 0;
+            font-size: 0.75rem;
+            letter-spacing: 0.35em;
+            color: var(--norse-rune);
+            border-top: 1px solid var(--norse-border);
+            border-bottom: 1px solid var(--norse-border);
+            flex-shrink: 0;
+            z-index: 1;
+        }
+        .rune-strip::before, .rune-strip::after {
+            content: "◆";
+            margin: 0 0.5em;
+            font-size: 0.5rem;
+            color: var(--norse-ice);
+            opacity: 0.7;
+            vertical-align: middle;
+        }
+        .nav-bar {
+            width: 100%;
+            padding: 6px 12px;
+            background: var(--norse-bark);
+            border-bottom: 1px solid var(--norse-border);
+            flex-shrink: 0;
+            z-index: 10;
+        }
+        .nav-bar a,
+        .nav-bar span {
+            color: var(--norse-ice);
+            text-decoration: none;
+            font-size: 0.75rem;
+            letter-spacing: 0.15em;
+        }
+        .nav-bar a:hover { color: var(--norse-gold); }
+        .wrap {
+            width: 100%;
+            max-width: 560px;
+            margin: 0 auto;
+            padding: 10px 14px 14px;
+            flex: 0 1 auto;
+            z-index: 1;
+        }
+        .hero {
+            text-align: center;
+            margin-bottom: 8px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--norse-border);
+        }
+        .hero h1 {
+            font-size: clamp(1.2rem, 3.5vw, 1.45rem);
+            color: var(--norse-gold);
+            letter-spacing: 0.2em;
+            margin: 0 0 4px 0;
+            text-shadow: 0 0 20px rgba(201, 162, 39, 0.3);
+            position: relative;
+        }
+        .hero .sub { font-size: 0.65rem; color: var(--norse-ice); letter-spacing: 0.25em; text-transform: uppercase; }
+        .intro { font-size: 0.88rem; color: var(--norse-bright); }
+        .glitch-wrap {
+            position: relative;
+            display: inline-block;
+        }
+        .glitch-wrap .glitch {
+            position: relative;
+            z-index: 1;
+        }
+        .glitch-wrap::before,
+        .glitch-wrap::after {
+            content: attr(data-text);
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            font: inherit;
+            color: inherit;
+            letter-spacing: inherit;
+        }
+        .glitch-wrap::before {
+            color: var(--norse-ice);
+            z-index: 0;
+            animation: glitch-1 3s infinite;
+            clip-path: polygon(0 0, 100% 0, 100% 35%, 0 35%);
+            transform: translate(-2px, 0);
+        }
+        .glitch-wrap::after {
+            color: rgba(201, 162, 39, 0.8);
+            z-index: 0;
+            animation: glitch-2 2.5s infinite reverse;
+            clip-path: polygon(0 65%, 100% 65%, 100% 100%, 0 100%);
+            transform: translate(2px, 0);
+        }
+        @keyframes glitch-1 {
+            0%, 90%, 100% { transform: translate(-2px, 0); opacity: 0.8; }
+            92% { transform: translate(2px, -1px); opacity: 1; }
+            94% { transform: translate(-1px, 1px); opacity: 1; }
+            96% { transform: translate(1px, 0); opacity: 0.9; }
+            98% { transform: translate(-2px, 0); opacity: 0.8; }
+        }
+        @keyframes glitch-2 {
+            0%, 90%, 100% { transform: translate(2px, 0); opacity: 0.7; }
+            93% { transform: translate(-2px, 1px); opacity: 1; }
+            95% { transform: translate(1px, -1px); opacity: 1; }
+            97% { transform: translate(-1px, 0); opacity: 0.8; }
+        }
+        .scanline {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0, 0, 0, 0.08) 2px,
+                rgba(0, 0, 0, 0.08) 4px
+            );
+            pointer-events: none;
+            z-index: 100;
+        }
+        .noise {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            opacity: 0.03;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 99;
+        }
+        .intro-wrap {
+            position: relative;
+            padding: 10px 12px 12px;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, var(--norse-panel) 0%, var(--norse-bark) 100%);
+            border: 1px solid var(--norse-border);
+            border-left: 3px solid var(--norse-ice);
+        }
+        .intro-wrap::before {
+            content: "᛫";
+            position: absolute;
+            top: 10px;
+            left: 12px;
+            font-size: 0.7rem;
+            color: var(--norse-rune);
+        }
+        .intro-wrap .intro { margin: 0; text-align: left; }
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--norse-border);
+        }
+        .actions a, .actions button {
+            padding: 10px 20px;
+            font-family: 'Cinzel', serif;
+            font-size: 0.8rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            text-decoration: none;
+            border: 1px solid var(--norse-gold);
+            color: var(--norse-gold);
+            background: transparent;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .actions a:hover, .actions button:hover {
+            background: rgba(201, 162, 39, 0.2);
+            color: var(--norse-bright);
+        }
+        .actions .btn-reg { border-color: var(--norse-ice); color: var(--norse-ice); }
+        .actions .btn-reg:hover { border-color: var(--norse-bright); color: var(--norse-bright); background: rgba(139, 156, 181, 0.15); }
+        .actions .btn-reg[disabled],
+        .actions .btn-reg[disabled]:hover,
+        .actions .btn-login[disabled],
+        .actions .btn-login[disabled]:hover {
+            opacity: 0.5;
+            cursor: default;
+            background: transparent;
+            color: var(--norse-ice);
+            border-color: var(--norse-ice);
+        }
+        #architect-login-form {
+            display: none;
+            margin-top: 14px;
+            padding: 16px;
+            border: 1px solid var(--norse-border);
+            background: var(--norse-bark);
+            max-width: 320px;
+            width: 100%;
+        }
+        #architect-login-form h3 { color: var(--norse-gold); margin: 0 0 10px 0; font-size: 0.9rem; letter-spacing: 0.08em; position: relative; padding-left: 18px; }
+        #architect-login-form h3::before { content: "ᛇ"; position: absolute; left: 0; color: var(--norse-rune); font-size: 0.8rem; }
+        #architect-login-form input {
+            width: 100%;
+            padding: 10px 12px;
+            background: var(--norse-bg);
+            border: 1px solid var(--norse-border);
+            color: var(--norse-bright);
+            margin-bottom: 8px;
+            font-family: 'Share Tech Mono', monospace;
+            box-sizing: border-box;
+        }
+        #architect-login-form input:focus {
+            outline: none;
+            border-color: var(--norse-ice);
+            box-shadow: 0 0 10px rgba(139, 156, 181, 0.25);
+        }
+        .ygg-tree {
+            text-align: center;
+            font-size: 1.1rem;
+            color: var(--norse-rune);
+            letter-spacing: 0.2em;
+            margin: 4px 0 6px 0;
+        }
+        @media (max-width: 480px) {
+            .actions { flex-direction: column; }
+            .actions a, .actions button { width: 100%; text-align: center; min-height: 44px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="noise" aria-hidden="true"></div>
+    <div class="scanline" aria-hidden="true"></div>
+    <div class="rune-strip" aria-hidden="true">ᚠ ᚢ ᚦ ᚨ ᚱ ᚲ ᚷ ᚹ ᚺ ᚾ ᛁ ᛃ ᛇ ᛈ ᛉ ᛊ ᛏ ᛒ ᛖ ᛗ ᛚ ᛜ ᛞ ᛟ</div>
+    <nav class="nav-bar">
+        <span aria-disabled="true" style="cursor: default; opacity: 0.6;">← SYSTEM ROOT</span>
+    </nav>
+
+    <div class="wrap">
+        <div class="hero">
+            <h1 class="glitch-wrap" data-text="YGGDRASIL"><span class="glitch">YGGDRASIL</span></h1>
+            <div class="sub">Сектор · Коріння світу</div>
+        </div>
+        <div class="ygg-tree" aria-hidden="true">᛭ ⋒ ᛭</div>
+        <div class="intro-wrap">
+            <p class="intro">Ви перебуваєте в Секторі «YGGDRASIL». Це не просто офіс — це сталеве дерево, чиї гілки (поверхи) пронизують саму породу, а коріння йде в цифрову безодню. Тут панує естетика «нордичного нуару»: грубий бетон, матові темні панелі та синє світло серверів, що нагадує відблиск льодовика.</p>
+            <p class="intro" style="margin-top:8px;">Ви — Менеджер. Ваш обов'язок — добудувати Вальгаллу до того, як прокинеться те, що спить у корінні.</p>
+        </div>
+
+        <div class="actions">
+            <button type="button" class="btn-login" id="btn-show-login" disabled aria-disabled="true">Ввійти</button>
+            <button type="button" class="btn-reg" disabled aria-disabled="true">Реєстрація</button>
+        </div>
+
+        <div id="architect-login-form">
+            <h3>ВХІД ДО YGGDRASIL</h3>
+            <input type="text" id="architect-code" placeholder="ACCESS CODE">
+            <p id="architect-login-msg" style="font-size:0.8rem; margin:0 0 8px 0; min-height:18px;"></p>
+            <div style="display:flex; gap:8px;">
+                <button type="button" class="btn-login" style="flex:1;" onclick="submitArchitectLogin()">CONNECT</button>
+                <button type="button" class="btn-reg" onclick="hideLoginForm()">Скасувати</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../session_store.js"></script>
+    <script>
+        function showLoginForm() {
+            // Функція вимкнена - кнопка неактивна
+            return;
+        }
+        function hideLoginForm() {
+            document.getElementById('architect-login-form').style.display = 'none';
+            document.getElementById('btn-show-login').style.display = 'inline-block';
+        }
+        async function submitArchitectLogin() {
+            var code = document.getElementById('architect-code').value.trim();
+            var msg = document.getElementById('architect-login-msg');
+            if (!code) { msg.style.color = 'var(--norse-gold)'; msg.textContent = 'Введіть код.'; return; }
+            msg.textContent = 'Перевірка...';
+            msg.style.color = 'var(--norse-text)';
+            try {
+                var res = await fetch('../get_users.php?t=' + Date.now(), { cache: 'no-store' });
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                var users = await res.json();
+                if (!Array.isArray(users)) throw new Error('Invalid data');
+                var user = users.find(function(u) { return u.access_code === code; });
+                if (!user || user.role === 'GAMEMASTER' || user.chapter === 'admin') {
+                    msg.style.color = '#c44';
+                    msg.textContent = 'Невірний код або доступ заборонено.';
+                    return;
+                }
+                if (window.helixSessionStore) window.helixSessionStore.setStoredCode(user.access_code);
+                else sessionStorage.setItem('helix_access_code', user.access_code);
+                msg.style.color = '#4a4';
+                msg.textContent = 'Доступ дозволено. Перенаправлення...';
+                var redirect = (user.chapter === 'ch1') ? '../chapter1/profile.html' : '../chapter2/profile.html';
+                setTimeout(function() { window.location.href = redirect + '?code=' + encodeURIComponent(user.access_code); }, 800);
+            } catch (e) {
+                msg.style.color = '#c44';
+                msg.textContent = 'Помилка мережі. Спробуйте пізніше.';
+            }
+        }
+        document.getElementById('architect-code').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') submitArchitectLogin();
+        });
+    </script>
+</body>
+</html>

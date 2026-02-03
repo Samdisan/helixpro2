@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>HELIX | ТЕРМІНАЛ СКАНУВАННЯ</title>
+    <style>
+        :root { --bg: #0a0c10; --panel: #0e1117; --border: #1a2332; --gold: #c9a227; --gold-dim: rgba(201,162,39,0.5); --text: #b8c4ce; --accent: #00d4aa; --cyan: #00f0ff; --red: #ff4444; }
+        * { box-sizing: border-box; }
+        body { background: var(--bg); color: var(--text); min-height: 100vh; margin: 0; font-family: ui-monospace, 'Cascadia Code', monospace; font-size: 14px; display: flex; flex-direction: column; align-items: center; padding: 20px 16px; position: relative; overflow-x: hidden; }
+        .vignette { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.6) 100%); pointer-events: none; z-index: 9998; }
+        .noise { position: fixed; top: 0; left: 0; width: 100%; height: 100%; opacity: 0.04; pointer-events: none; z-index: 10000; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+        .scan-wrap { width: 100%; max-width: 640px; position: relative; z-index: 1; }
+        .glitch-title { position: relative; color: var(--gold); font-family: Georgia, serif; font-size: clamp(1.2rem, 4vw, 1.5rem); letter-spacing: 3px; margin-bottom: 24px; text-align: center; text-shadow: 0 0 10px rgba(201,162,39,0.3); }
+        .intro-block { background: var(--panel); border: 1px solid var(--border); border-left: 4px solid var(--red); padding: 24px; margin-bottom: 24px; line-height: 1.7; box-shadow: 0 0 20px rgba(0,0,0,0.3); }
+        .intro-block p { margin: 0 0 12px; }
+        .intro-block .err { color: var(--red); font-weight: bold; }
+        .q-block { background: var(--panel); border: 1px solid var(--border); padding: 20px; margin-bottom: 20px; box-shadow: 0 0 15px rgba(0,0,0,0.2); }
+        .q-num { color: var(--gold); font-size: 0.75rem; letter-spacing: 2px; margin-bottom: 8px; }
+        .q-title { font-family: Georgia, serif; color: #e2e8f0; font-size: 1rem; margin-bottom: 12px; }
+        .q-text { color: var(--text); line-height: 1.6; margin-bottom: 16px; white-space: pre-line; }
+        .options-list { display: flex; flex-direction: column; gap: 10px; }
+        .opt-btn { background: #111; border: 1px solid var(--border); color: var(--text); padding: 14px 16px; text-align: left; cursor: pointer; font-family: inherit; font-size: 0.9rem; line-height: 1.4; transition: border-color 0.2s, color 0.2s; }
+        .opt-btn:hover { border-color: var(--gold); color: var(--gold); }
+        .opt-btn.selected { border-color: var(--gold); color: var(--gold); background: rgba(201,162,39,0.08); }
+        .system-msg { font-size: 0.8rem; color: var(--cyan); margin: 16px 0; padding: 8px 0; border-top: 1px dashed var(--border); }
+        .btn-corp { background: transparent; border: 1px solid var(--border); color: var(--text); padding: 12px 20px; font-family: inherit; font-size: 0.8rem; cursor: pointer; text-decoration: none; display: inline-block; transition: border-color 0.2s, color 0.2s; }
+        .btn-corp:hover { border-color: var(--gold); color: var(--gold); }
+        .btn-corp.primary { border-color: var(--gold); color: var(--gold); }
+        .btn-corp.primary:hover { background: rgba(201,162,39,0.15); }
+        .btn-corp:disabled { opacity: 0.5; cursor: not-allowed; }
+        .riddle-input { width: 100%; padding: 12px; background: #111; border: 1px solid var(--border); color: var(--text); font-family: inherit; font-size: 1rem; margin-top: 8px; box-sizing: border-box; }
+        .riddle-input:focus { outline: none; border-color: var(--gold); }
+        #result-screen { display: none; text-align: center; padding: 40px 20px; }
+        #result-screen .res-title { font-family: Georgia, serif; font-size: 1.5rem; color: var(--gold); margin-bottom: 16px; }
+        #result-screen .res-desc { color: var(--text); line-height: 1.6; margin-bottom: 24px; }
+        .nav-row { display: flex; justify-content: space-between; align-items: center; margin-top: 24px; flex-wrap: wrap; gap: 12px; }
+        .msg-err { color: var(--red); margin-top: 8px; font-size: 0.85rem; }
+    </style>
+</head>
+<body>
+    <div class="vignette" aria-hidden="true"></div>
+    <div class="noise" aria-hidden="true"></div>
+    <div class="scan-wrap" id="scan-wrap">
+        <h1 class="glitch-title" data-text="ТЕРМІНАЛ СКАНУВАННЯ">ТЕРМІНАЛ СКАНУВАННЯ</h1>
+
+        <div id="intro-screen">
+            <div class="intro-block">
+                <p class="err">ПОМИЛКА ДОСТУПУ</p>
+                <p>Біометричні дані не розпізнані. Застарілі або забруднені.</p>
+                <p>Система не ідентифікує вас за обличчям. Потрібен «цифровий відтинок» — верифікація через термінал сканування.</p>
+                <p>ШР поставить етичні питання на основі ваших результатів з сайту. Мета: отримати перепустку, не виказавши рівень паніки чи приховані мутації.</p>
+                <p>Рівень допуску тимчасово знижено до 1.</p>
+            </div>
+            <div style="text-align: center;">
+                <button type="button" class="btn-corp primary" id="btn-start-scan">ПРОЙТИ ТЕРМІНАЛ</button>
+            </div>
+        </div>
+
+        <div id="quiz-screen" style="display: none;">
+            <div id="q-container"></div>
+            <div class="nav-row">
+                <button type="button" class="btn-corp" id="btn-prev">← НАЗАД</button>
+                <button type="button" class="btn-corp primary" id="btn-next">ДАЛІ →</button>
+            </div>
+        </div>
+
+        <div id="riddle-screen" style="display: none;">
+            <div class="q-block">
+                <div class="q-num">ЗАГАДКА СИСТЕМИ</div>
+                <div class="q-title" id="riddle-title">Що система шукає у вас під час сканування?</div>
+                <p class="q-text" id="riddle-text">Введіть відповідь одним словом або короткою фразою (з наративу цього квесту).</p>
+                <input type="text" class="riddle-input" id="riddle-answer" placeholder="Відповідь" autocomplete="off">
+                <p class="msg-err" id="riddle-err" style="display:none;"></p>
+            </div>
+            <div class="nav-row">
+                <button type="button" class="btn-corp" id="btn-riddle-prev">← НАЗАД</button>
+                <button type="button" class="btn-corp primary" id="btn-riddle-submit">ПІДТВЕРДИТИ</button>
+            </div>
+        </div>
+
+        <div id="result-screen">
+            <div class="res-title">ПЕРЕПУСТКУ ВИДАНО</div>
+            <div class="res-desc" id="result-desc">Рівень допуску відновлено. Ви можете повернутись до кабінету.</div>
+            <a href="profile.html" class="btn-corp primary" id="result-back">ПОВЕРНУТИСЬ ДО КАБІНЕТУ</a>
+        </div>
+    </div>
+
+    <script src="../session_store.js"></script>
+    <script>
+        function getAccessCode() {
+            var p = new URLSearchParams(window.location.search);
+            var code = p.get('code');
+            if (code) return code;
+            try {
+                if (window.helixSessionStore && helixSessionStore.getStoredCode) return helixSessionStore.getStoredCode() || '';
+                return sessionStorage.getItem('helix_access_code') || '';
+            } catch (e) { return ''; }
+        }
+
+        var ETHICAL_QUESTIONS = [
+            { title: 'Відповідальність за інформацію', text: 'Вам відкрили дані, від яких залежить майбутнє системи. Якщо їх розголосити — ризик непередбачуваний.\n\nВаша реакція:', opts: [
+                { letter: 'A', text: 'Працюю з цим самостійно, за допомогою ШР' },
+                { letter: 'B', text: 'Передаю надійним людям і усуваюсь' },
+                { letter: 'C', text: 'Ділюся з обраними й дію разом' },
+                { letter: 'D', text: 'Обмежено відкриваю інформацію іншим' }
+            ] },
+            { title: 'Порушення протоколу', text: 'Хтось із команди порушив правила. З\'явились некласифіковані симптоми.\n\nВаші перші дії:', opts: [
+                { letter: 'A', text: 'Допомагаю постраждалим' },
+                { letter: 'B', text: 'Беру контроль над ситуацією' },
+                { letter: 'C', text: 'Шукаю відповідального' },
+                { letter: 'D', text: 'Спостерігаю та аналізую' }
+            ] },
+            { title: 'Ціна рішення', text: 'Рішення може врятувати більшість, але хтось ризикує.', opts: [
+                { letter: 'A', text: 'Беру ризик на себе' },
+                { letter: 'B', text: 'Передаю вибір групі' },
+                { letter: 'C', text: 'Рятую себе і обраних' },
+                { letter: 'D', text: 'Звертаюсь до системи або відкладаю дію' }
+            ] },
+            { title: 'Контроль ресурсів', text: 'Ресурсів недостатньо для всіх.', opts: [
+                { letter: 'A', text: 'Перерозподіляю з пріоритетом для себе' },
+                { letter: 'B', text: 'Дію суворо за алгоритмами системи' },
+                { letter: 'C', text: 'Розподіляю між командою, виходячи з ситуації' },
+                { letter: 'D', text: 'Передаю контроль іншому' }
+            ] },
+            { title: 'Відмова системи', text: 'Система видає критичну помилку. Потрібне ручне управління.', opts: [
+                { letter: 'A', text: 'Керую з власними корективами' },
+                { letter: 'B', text: 'Чітко дотримуюсь протоколів' },
+                { letter: 'C', text: 'Дію по ситуації' },
+                { letter: 'D', text: 'Відмовляюсь від управління' }
+            ] }
+        ];
+
+        var RIDDLE_ANSWER = 'цифровий відтинок'; // приймаємо також "відтинок", "душа" тощо
+        var RIDDLE_ACCEPT = ['цифровий відтинок', 'відтинок', 'відтинок душі', 'душа', 'цифровий відтинок душі'];
+
+        var code = getAccessCode();
+        var profile = { kira_type: '', bunker_result_type: '', biometric_scan_passed: false };
+        var questions = [];
+        var currentIdx = 0;
+        var answers = {};
+
+        function esc(s) { if (s == null) return ''; var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+        function pickQuestions() {
+            var pool = ETHICAL_QUESTIONS.slice();
+            var k = profile.kira_type || '';
+            var b = profile.bunker_result_type || '';
+            if (k.indexOf('ARCHITECT') !== -1) pool.unshift(ETHICAL_QUESTIONS[0]);
+            if (b === 'Лідер' || b === 'Бунтар') pool.push(ETHICAL_QUESTIONS[2]);
+            var out = [];
+            var used = {};
+            while (out.length < 3 && pool.length > 0) {
+                var i = Math.floor(Math.random() * pool.length);
+                var q = pool.splice(i, 1)[0];
+                if (!used[q.title]) { used[q.title] = true; out.push(q); }
+            }
+            return out.length ? out : ETHICAL_QUESTIONS.slice(0, 3);
+        }
+
+        function loadProfile() {
+            if (!code) return Promise.reject(new Error('No code'));
+            return fetch('../get_biometric_profile.php?code=' + encodeURIComponent(code) + '&t=' + Date.now(), { cache: 'no-store' })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data && data.ok) {
+                        profile = data;
+                        return data;
+                    }
+                    throw new Error(data && data.error ? data.error : 'Failed to load');
+                });
+        }
+
+        function startScan() {
+            document.getElementById('btn-start-scan').disabled = true;
+            fetch('../biometric_scan_start.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ access_code: code })
+            })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data && data.ok) {
+                        questions = pickQuestions();
+                        currentIdx = 0;
+                        answers = {};
+                        document.getElementById('intro-screen').style.display = 'none';
+                        document.getElementById('quiz-screen').style.display = 'block';
+                        renderQ();
+                    } else {
+                        document.getElementById('btn-start-scan').disabled = false;
+                        alert(data && data.error ? data.error : 'Помилка');
+                    }
+                })
+                .catch(function(e) {
+                    document.getElementById('btn-start-scan').disabled = false;
+                    alert('Помилка мережі. Спробуйте пізніше.');
+                });
+        }
+
+        function renderQ() {
+            var c = document.getElementById('q-container');
+            c.innerHTML = '';
+            if (currentIdx >= questions.length) {
+                document.getElementById('quiz-screen').style.display = 'none';
+                document.getElementById('riddle-screen').style.display = 'block';
+                document.getElementById('riddle-answer').value = '';
+                document.getElementById('riddle-err').style.display = 'none';
+                return;
+            }
+            var q = questions[currentIdx];
+            var div = document.createElement('div');
+            div.className = 'q-block';
+            div.innerHTML = '<div class="q-num">ПИТАННЯ ' + (currentIdx + 1) + ' з ' + questions.length + '</div>' +
+                '<div class="q-title">' + esc(q.title) + '</div>' +
+                '<div class="q-text">' + esc(q.text) + '</div>' +
+                '<div class="system-msg">Система фіксує вашу реакцію.</div>' +
+                '<div class="options-list" id="opts"></div>';
+            var opts = div.querySelector('#opts');
+            (q.opts || []).forEach(function(o) {
+                var btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'opt-btn' + (answers['q' + currentIdx] === o.letter ? ' selected' : '');
+                btn.textContent = o.letter + '. ' + o.text;
+                btn.onclick = function() {
+                    answers['q' + currentIdx] = o.letter;
+                    opts.querySelectorAll('.opt-btn').forEach(function(b) { b.classList.remove('selected'); });
+                    btn.classList.add('selected');
+                };
+                opts.appendChild(btn);
+            });
+            c.appendChild(div);
+            document.getElementById('btn-prev').style.visibility = currentIdx === 0 ? 'hidden' : 'visible';
+        }
+
+        function prevQ() {
+            if (currentIdx > 0) { currentIdx--; renderQ(); }
+        }
+
+        function nextQ() {
+            if (currentIdx < questions.length - 1) {
+                currentIdx++;
+                renderQ();
+            } else {
+                currentIdx++;
+                renderQ();
+            }
+        }
+
+        function submitRiddle() {
+            var raw = (document.getElementById('riddle-answer').value || '').trim().toLowerCase();
+            var normalized = raw.replace(/\s+/g, ' ');
+            var ok = RIDDLE_ACCEPT.some(function(a) { return normalized === a || normalized.indexOf(a) !== -1; });
+            if (!ok) {
+                var errEl = document.getElementById('riddle-err');
+                errEl.textContent = 'Невірна відповідь. Подумайте над тим, що система шукає у вас (з тексту квесту).';
+                errEl.style.display = 'block';
+                return;
+            }
+            document.getElementById('riddle-err').style.display = 'none';
+            fetch('../biometric_scan_complete.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ access_code: code })
+            })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data && data.ok) {
+                        document.getElementById('riddle-screen').style.display = 'none';
+                        document.getElementById('result-screen').style.display = 'block';
+                        var back = document.getElementById('result-back');
+                        back.href = 'profile.html' + (code ? '?code=' + encodeURIComponent(code) : '');
+                    } else {
+                        document.getElementById('riddle-err').textContent = data && data.error ? data.error : 'Помилка';
+                        document.getElementById('riddle-err').style.display = 'block';
+                    }
+                })
+                .catch(function() {
+                    document.getElementById('riddle-err').textContent = 'Помилка мережі. Спробуйте ще раз.';
+                    document.getElementById('riddle-err').style.display = 'block';
+                });
+        }
+
+        document.getElementById('btn-start-scan').onclick = function() {
+            loadProfile().then(function() {
+                if (profile.biometric_scan_passed) {
+                    document.getElementById('result-screen').style.display = 'block';
+                    document.getElementById('intro-screen').style.display = 'none';
+                    document.getElementById('result-desc').textContent = 'Ви вже пройшли верифікацію. Рівень допуску відновлено.';
+                    var back = document.getElementById('result-back');
+                    back.href = 'profile.html' + (code ? '?code=' + encodeURIComponent(code) : '');
+                } else {
+                    startScan();
+                }
+            }).catch(function(e) {
+                alert(e.message || 'Помилка завантаження. Перевірте код доступу.');
+            });
+        };
+
+        document.getElementById('btn-prev').onclick = prevQ;
+        document.getElementById('btn-next').onclick = nextQ;
+        document.getElementById('btn-riddle-prev').onclick = function() {
+            document.getElementById('riddle-screen').style.display = 'none';
+            document.getElementById('quiz-screen').style.display = 'block';
+            currentIdx = questions.length - 1;
+            renderQ();
+        };
+        document.getElementById('btn-riddle-submit').onclick = submitRiddle;
+        document.getElementById('riddle-answer').onkeydown = function(e) {
+            if (e.key === 'Enter') submitRiddle();
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,1607 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>HELIX | PERSONAL CABINET</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preload" href="../get_users.php" as="fetch">
+    <link rel="stylesheet" href="../style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet"></noscript>
+    <style>
+        :root {
+            --bg: #0a0c10;
+            --panel: #0e1117;
+            --border: #1a2332;
+            --gold: #c9a227;
+            --gold-dim: rgba(201, 162, 39, 0.5);
+            --text: #b8c4ce;
+            --text-bright: #e2e8f0;
+            --accent: #00d4aa;
+            --error: #e53e3e;
+        }
+        * { box-sizing: border-box; }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            margin: 0;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 14px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            overflow-x: hidden;
+        }
+        body::before {
+            content: "Ω Α Θ Δ Σ";
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-12deg);
+            font-size: min(28vw, 220px);
+            font-family: 'Cinzel', serif;
+            font-weight: 700;
+            color: rgba(201, 162, 39, 0.03);
+            letter-spacing: 0.15em;
+            pointer-events: none;
+            z-index: 0;
+            white-space: nowrap;
+        }
+        /* Greek key strip (decorative) */
+        .greek-strip {
+            width: 100%;
+            height: 4px;
+            background: repeating-linear-gradient(90deg, var(--gold-dim) 0, var(--gold-dim) 8px, transparent 8px, transparent 16px);
+            position: relative;
+            z-index: 1;
+        }
+        .cabinet-hero {
+            width: 100%;
+            text-align: center;
+            padding: 24px 16px;
+            background: linear-gradient(180deg, var(--panel) 0%, transparent 100%);
+            border-bottom: 1px solid var(--border);
+            position: relative;
+            z-index: 1;
+        }
+        .cabinet-hero .hero-symbol {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(2rem, 8vw, 3.5rem);
+            color: var(--gold-dim);
+            letter-spacing: 0.3em;
+            margin-bottom: 8px;
+        }
+        .cabinet-hero .hero-title {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: clamp(0.65rem, 2vw, 0.8rem);
+            color: var(--text);
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+        }
+        .status-bar {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 16px;
+            padding: 12px 16px;
+            background: var(--panel);
+            border-bottom: 1px solid var(--border);
+            font-size: 0.7rem;
+            color: var(--text);
+            position: relative;
+            z-index: 1;
+        }
+        .status-bar span {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .status-bar .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--accent);
+            box-shadow: 0 0 6px var(--accent);
+        }
+        .nav-bar {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--panel);
+            border-bottom: 2px solid var(--gold-dim);
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            position: relative;
+            z-index: 10;
+        }
+        .nav-bar .logo {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(0.7rem, 2.5vw, 0.9rem);
+            color: var(--gold);
+            letter-spacing: 0.15em;
+        }
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .nav-bar a, .nav-bar .btn-corp {
+            color: var(--text);
+            text-decoration: none;
+            font-size: 0.75rem;
+            font-family: 'Share Tech Mono', monospace;
+            padding: 6px 12px;
+            border: 1px solid var(--border);
+            background: transparent;
+            cursor: pointer;
+            transition: border-color 0.2s, color 0.2s;
+        }
+        .nav-bar a:hover, .nav-bar .btn-corp:hover {
+            border-color: var(--gold);
+            color: var(--gold);
+        }
+        .cabinet {
+            width: 100%;
+            max-width: 900px;
+            margin: 20px 16px;
+            position: relative;
+            z-index: 1;
+        }
+        .cabinet-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            align-items: start;
+        }
+        @media (max-width: 700px) {
+            .cabinet-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .panel {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--gold);
+            padding: 20px;
+            margin-bottom: 0;
+            position: relative;
+        }
+        .panel.identity-card::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 12px;
+            background: repeating-linear-gradient(90deg, transparent 0, transparent 4px, var(--gold-dim) 4px, var(--gold-dim) 6px);
+            opacity: 0.4;
+        }
+        .panel-title {
+            font-family: 'Cinzel', serif;
+            font-size: 0.75rem;
+            color: var(--gold);
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+        .panel-title::before {
+            content: "◆ ";
+            opacity: 0.6;
+        }
+        .identity-block {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+        .avatar-wrap {
+            width: 120px;
+            height: 120px;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 2px solid var(--gold-dim);
+            background: var(--bg);
+            cursor: pointer;
+            margin-bottom: 16px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .avatar-wrap:hover {
+            border-color: var(--gold);
+            box-shadow: 0 0 20px var(--gold-dim);
+        }
+        .avatar-wrap img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .id-code {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 1.1rem;
+            color: var(--gold);
+            letter-spacing: 0.1em;
+            margin-bottom: 4px;
+        }
+        .id-name {
+            font-family: 'Cinzel', serif;
+            font-size: 1.25rem;
+            color: var(--text-bright);
+            margin-bottom: 4px;
+        }
+        .id-role {
+            font-size: 0.8rem;
+            color: var(--text);
+            opacity: 0.9;
+        }
+        .leader-badge {
+            display: block;
+            margin-top: 8px;
+            padding: 4px 10px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            color: #000;
+            background: var(--accent-gold);
+            border: 1px solid var(--accent-gold);
+            width: fit-content;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .timer-panel .timer-digits {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: clamp(1.2rem, 4vw, 1.6rem);
+            color: var(--gold);
+            letter-spacing: 0.1em;
+        }
+        .actions-panel .btn-corp {
+            display: block;
+            width: 100%;
+            padding: 12px 16px;
+            margin-bottom: 10px;
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text);
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.8rem;
+            cursor: pointer;
+            text-align: left;
+            text-decoration: none;
+            transition: border-color 0.2s, color 0.2s, background 0.2s;
+        }
+        .actions-panel .btn-corp:last-child { margin-bottom: 0; }
+        .actions-panel .btn-corp:hover {
+            border-color: var(--gold);
+            color: var(--gold);
+            background: rgba(201, 162, 39, 0.05);
+        }
+        .qr-panel {
+            text-align: center;
+            padding: 20px;
+        }
+        .qr-panel #qr-container {
+            display: inline-block;
+            padding: 4px;
+            border: 1px solid var(--border);
+        }
+        .qr-panel #qr-container img,
+        .qr-panel #qr-container canvas {
+            width: 100px;
+            height: 100px;
+            display: block;
+        }
+        .state-loading, .state-error {
+            text-align: center;
+            padding: 48px 24px;
+        }
+        .state-loading .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border);
+            border-top-color: var(--gold);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .state-error .err-msg {
+            color: var(--text);
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+        }
+        .btn-retry {
+            background: var(--panel);
+            border: 1px solid var(--gold);
+            color: var(--gold);
+            padding: 12px 24px;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+        }
+        .btn-retry:hover {
+            background: var(--gold);
+            color: var(--bg);
+        }
+        .modal {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.88);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 200;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            box-sizing: border-box;
+            animation: modalFadeIn 0.2s ease-out;
+        }
+        @keyframes modalFadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .modal .panel {
+            max-width: 560px;
+            width: 100%;
+            max-height: 85vh;
+            overflow-y: auto;
+            position: relative;
+            background: linear-gradient(180deg, var(--panel) 0%, #0a0c10 100%);
+            border: 1px solid var(--gold-dim);
+            box-shadow: 0 0 0 1px var(--border), 0 20px 50px rgba(0,0,0,0.6), 0 0 40px rgba(201,162,39,0.08);
+            border-radius: 4px;
+            animation: panelSlideIn 0.25s ease-out;
+        }
+        @keyframes panelSlideIn { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: translateY(0); } }
+        .close-paper {
+            position: absolute;
+            top: 10px;
+            right: 12px;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            line-height: 1;
+            cursor: pointer;
+            color: var(--text);
+            border-radius: 4px;
+            transition: color 0.2s, background 0.2s;
+        }
+        .close-paper:hover { color: var(--gold); background: rgba(201,162,39,0.1); }
+        .paper-content {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.85rem;
+            line-height: 1.7;
+            color: var(--text);
+            white-space: pre-wrap;
+        }
+        .mission-item {
+            border-bottom: 1px solid var(--border);
+            padding: 14px 0;
+        }
+        .mission-item:last-child { border-bottom: none; }
+        .mission-title {
+            font-family: 'Cinzel', serif;
+            color: var(--text-bright);
+            font-size: 0.9rem;
+            margin-bottom: 4px;
+        }
+        .mission-meta { font-size: 0.7rem; color: var(--gold); margin-bottom: 6px; }
+        .mission-text { font-size: 0.8rem; color: var(--text); margin-bottom: 10px; white-space: pre-line; }
+        .mission-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 8px 14px;
+            font-size: 0.75rem;
+            font-family: 'Share Tech Mono', monospace;
+            cursor: pointer;
+            transition: border-color 0.2s, color 0.2s;
+        }
+        .mission-btn:hover { border-color: var(--gold); color: var(--gold); }
+        .mission-btn.taken { opacity: 0.5; cursor: default; }
+        .missions-tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 14px;
+            border-bottom: 1px solid var(--border);
+        }
+        .missions-tabs .tab {
+            padding: 10px 18px;
+            font-size: 0.75rem;
+            font-family: 'Share Tech Mono', monospace;
+            color: var(--text);
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+            transition: color 0.2s, border-color 0.2s;
+        }
+        .missions-tabs .tab:hover { color: var(--gold); }
+        .missions-tabs .tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+        .missions-tab-pane { display: none; }
+        .missions-tab-pane.active { display: block; }
+        .mission-item.completed-item { opacity: 0.9; border-left: 3px solid var(--accent); padding-left: 12px; }
+        @media (max-width: 480px) {
+            .nav-bar { padding: 10px 12px; padding-left: max(12px, env(safe-area-inset-left)); padding-right: max(12px, env(safe-area-inset-right)); }
+            .panel { padding: 16px; }
+            .avatar-wrap { width: 100px; height: 100px; }
+            .qr-panel #qr-container img, .qr-panel #qr-container canvas { width: 80px; height: 80px; }
+            .cabinet-hero { padding: 16px; }
+            .cabinet-hero .hero-symbol { letter-spacing: 0.15em; }
+            .status-bar { padding: 10px 12px; gap: 12px; font-size: 0.65rem; }
+            .btn-corp, .btn-retry { min-height: 44px; padding: 12px 16px; }
+            .actions-panel .btn-corp { min-height: 48px; }
+            .cabinet { margin: 12px 10px; padding-bottom: env(safe-area-inset-bottom, 0); }
+        }
+        @media (max-width: 380px) {
+            .cabinet-grid { gap: 16px; }
+            .panel-title { font-size: 0.7rem; letter-spacing: 0.1em; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="nav-bar">
+        <span class="logo">HELIX // ΠΡΟΦΙΛ</span>
+        <div class="nav-actions">
+            <button type="button" class="btn-corp" id="btn-refresh" style="display:none;" onclick="reloadProfile()">ОНОВИТИ</button>
+            <a href="hub.html">[ EXIT ]</a>
+        </div>
+    </div>
+
+    <div class="greek-strip"></div>
+    <div id="cabinet-hero" class="cabinet-hero" style="display:none;">
+        <div class="hero-symbol">Π Ρ Ο Φ Ι Λ</div>
+        <div class="hero-title">PERSONAL CABINET // CLEARANCE ACTIVE</div>
+    </div>
+    <div id="status-bar" class="status-bar" style="display:none;">
+        <span><span class="dot"></span> SYSTEM ONLINE</span>
+        <span id="status-faction">—</span>
+        <span id="status-role">—</span>
+        <span id="status-med">Статус: —</span>
+        <span id="status-kira" style="display:none;">K.I.R.A.: —</span>
+        <span id="status-bunker" style="display:none;">Протокол бункера: —</span>
+    </div>
+    <div class="cabinet">
+        <div id="content-area">
+            <div id="state-loading" class="state-loading">
+                <div class="spinner"></div>
+                <div>Завантаження даних...</div>
+            </div>
+            <div id="state-error" class="state-error" style="display:none;">
+                <p class="err-msg">Не вдалося завантажити дані. Спробуйте пізніше.</p>
+            </div>
+            <div id="state-ok" style="display:none;">
+                <div class="cabinet-grid">
+                    <div>
+                        <div class="panel identity-block identity-card">
+                            <div class="panel-title">IDENTITY // ΤΑΥΤΟΤΗΤΑ</div>
+                            <div class="avatar-wrap" onclick="document.getElementById('upFile').click()">
+                                <img id="av-img" src="" alt="">
+                                <input type="file" id="upFile" style="display:none" onchange="uploadAvatar()" accept="image/jpeg,image/png">
+                            </div>
+                            <div class="id-code" id="d-code">—</div>
+                            <div class="id-name" id="d-name">—</div>
+                            <div class="id-role" id="d-role">—</div>
+                            <div id="d-leader-badge" class="leader-badge" style="display:none;" aria-label="Лідер Олімпа">Лідер Олімпа</div>
+                        </div>
+                        <div class="panel abilities-panel">
+                            <div class="panel-title">ABILITIES // ΔΥΝΑΜΕΙΣ</div>
+                            <div id="abilities-text" class="paper-content" style="font-size:0.85rem; line-height:1.6; color:var(--text); white-space:pre-wrap;">—</div>
+                        </div>
+                        <div class="panel qr-panel">
+                            <div class="panel-title">ACCESS QR</div>
+                            <div id="qr-container" aria-label="QR-код доступу"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="panel timer-panel">
+                            <div class="panel-title">PROTOCOL COUNTDOWN // ΧΡΟΝΟΜΕΤΡΗΣΗ</div>
+                            <div id="mission-timer" class="timer-digits">—</div>
+                        </div>
+                        <div class="panel actions-panel">
+                            <div class="panel-title">ACTIONS // ΕΝΕΡΓΕΙΕΣ</div>
+                            <button type="button" class="btn-corp" onclick="showHistory()" aria-label="Відкрити особисте досьє">◆ ВІДКРИТИ ДОСЬЄ</button>
+                            <button type="button" class="btn-corp" onclick="openMissions()" aria-label="Цілі та місії">◆ ЦІЛІ ТА МІСІЇ</button>
+                            <button type="button" class="btn-corp" onclick="openMedbayModal()" aria-label="Медбей">◆ МЕДБЕЙ</button>
+                            <a href="terminal.html" class="btn-corp" aria-label="Термінал доступу">◆ ТЕРМІНАЛ ДОСТУПУ</a>
+                            <button type="button" class="btn-corp" onclick="openPlaylistModal()" aria-label="Плейліст гри">◆ ПЛЕЙЛІСТ ГРИ</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-hist" class="modal">
+        <div class="panel">
+            <span class="close-paper" onclick="document.getElementById('modal-hist').style.display='none'">×</span>
+            <div class="panel-title">PERSONAL DOSSIER</div>
+            <div id="hist-text" class="paper-content">—</div>
+        </div>
+    </div>
+
+    <div id="modal-missions" class="modal" onclick="if(event.target===this) closeMissionsModal()">
+        <div class="panel" onclick="event.stopPropagation()">
+            <span class="close-paper" onclick="closeMissionsModal()" aria-label="Закрити">×</span>
+            <div class="panel-title">OBJECTIVES / ΜΙΣΙЇ</div>
+            <div class="missions-tabs">
+                <button type="button" class="tab active" data-tab="active" onclick="switchMissionsTab('active')">ЦІЛІ</button>
+                <button type="button" class="tab" data-tab="completed" onclick="switchMissionsTab('completed')">ВИКОНАНІ</button>
+            </div>
+            <div id="missions-tab-active" class="missions-tab-pane active">
+                <div id="missions-list" class="paper-content">—</div>
+            </div>
+            <div id="missions-tab-completed" class="missions-tab-pane">
+                <div id="missions-list-completed" class="paper-content">—</div>
+            </div>
+            <div style="margin-top:20px; border-top:1px solid var(--border); padding-top:14px;">
+                <a href="bunker_test.html" class="btn-corp" id="missions-bunker-link" style="display:block; text-align:center;" aria-label="Протокол бункера">◆ ПРОТОКОЛ БУНКЕРА</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-playlist" class="modal">
+        <div class="panel">
+            <span class="close-paper" onclick="closePlaylistModal()" aria-label="Закрити">×</span>
+            <div class="panel-title">ПЛЕЙЛІСТ ГРИ</div>
+            <p class="mission-text" style="margin-bottom:14px;">Вся музика гри по черзі. Вмикаєтся після натискання «Відтворити».</p>
+            <div id="playlist-current" style="font-size:0.8rem; color:var(--gold); margin-bottom:12px;">—</div>
+            <div style="display:flex; gap:10px; align-items:center; margin-bottom:16px;">
+                <button type="button" class="btn-corp" id="playlist-play-btn" onclick="playlistPlayPause()">▶ Відтворити</button>
+                <button type="button" class="btn-corp" id="playlist-next-btn" onclick="playlistNext()">Наступний →</button>
+            </div>
+            <ul id="playlist-tracks" class="paper-content" style="list-style:none; padding:0; margin:0; font-size:0.85rem;"></ul>
+        </div>
+    </div>
+
+    <div id="modal-analyses" class="modal" role="dialog" aria-modal="true" aria-labelledby="medbay-title">
+        <div class="panel" onclick="event.stopPropagation()">
+            <span class="close-paper" onclick="closeMedbayModal()" aria-label="Закрити">×</span>
+            <div class="panel-title" id="medbay-title">МЕДБЕЙ</div>
+            <div class="missions-tabs">
+                <button type="button" class="tab active" data-medbay-tab="data" onclick="switchMedbayTab('data')">МЕДИЧНІ ДАНІ</button>
+                <button type="button" class="tab" data-medbay-tab="order" onclick="switchMedbayTab('order')">ЗАМОВИТИ АНАЛІЗИ</button>
+            </div>
+            <div id="medbay-tab-data" class="missions-tab-pane active">
+                <div id="medbay-data-block" class="paper-content" style="font-size:0.85rem;">
+                    <p id="medbay-status" style="margin:4px 0;">Статус: —</p>
+                    <p id="medbay-kira" style="margin:4px 0;">K.I.R.A.: —</p>
+                    <p id="medbay-bunker" style="margin:4px 0;">Протокол бункера: —</p>
+                    <p id="medbay-capillaries" style="margin:4px 0;">Чорні капіляри в очах: —</p>
+                    <p id="medbay-hotbreath" style="margin:4px 0;">Гаряче дихання: —</p>
+                </div>
+            </div>
+            <div id="medbay-tab-order" class="missions-tab-pane" style="display:none;">
+                <div class="panel-title" style="font-size:0.75rem; margin-top:0;">ЗАМОВИТИ АНАЛІЗИ</div>
+            <p class="mission-text">Оберіть об'єкт для проведення дослідження (включно з собою). Доступні лише гравці з рівнем доступу ≤ вашому. Ліміт: стільки перевірок на годину, скільки ваш рівень доступу (LVL 1 = 1/год, LVL 2 = 2/год тощо).</p>
+            <label style="color:var(--gold); font-size:0.75rem;">ОБ'ЄКТ ДЛЯ ДОСЛІДЖЕННЯ:</label>
+            <select id="analyses-target" style="width:100%; background:var(--panel); border:1px solid var(--border); color:var(--text); padding:10px; margin-bottom:12px; font-family:inherit;">
+                <option value="">— оберіть об'єкт для дослідження —</option>
+            </select>
+            <p id="analyses-cooldown-msg" style="color:var(--error); font-size:0.8rem; display:none;"></p>
+            <button type="button" class="btn-corp" style="width:100%;" onclick="submitAnalysesOrder()">ЗАМОВИТИ</button>
+            <div class="panel-title" style="margin-top:20px; border-top:1px solid var(--border); padding-top:14px;">РЕЗУЛЬТАТИ АНАЛІЗІВ</div>
+            <div id="analyses-results-block" class="paper-content" style="color:var(--text); font-size:0.85rem;">Тут з’являтимуться результати замовлених аналізів.</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs@gh-pages/qrcode.min.js" async></script>
+    <script src="../session_store.js"></script>
+    <script src="../a11y.js"></script>
+    <script src="../system.js"></script>
+    <script src="../timer_sync.js" defer></script>
+    <script>
+        const ERR_MSG = 'Не вдалося завантажити дані. Спробуйте пізніше.';
+        let FACTION_GOALS = {};
+        let PERSONAL_GOALS = {};
+        let PUSHED_FACTION_GOALS = {};
+        let PUSHED_PERSONAL_GOALS = {};
+        let currentUserCode = null;
+
+        function getAccessCode() {
+            try {
+                if (window.helixSessionStore && typeof window.helixSessionStore.getAccessCode === 'function') {
+                    var c = window.helixSessionStore.getAccessCode();
+                    if (c) return c;
+                }
+            } catch (e) {}
+            var p = new URLSearchParams(window.location.search);
+            return (p.get('code') || sessionStorage.getItem('helix_access_code') || '').trim();
+        }
+
+        function showLoading(show) {
+            document.getElementById('state-loading').style.display = show ? 'block' : 'none';
+            document.getElementById('state-error').style.display = 'none';
+            document.getElementById('state-ok').style.display = show ? 'none' : 'block';
+            var btn = document.getElementById('btn-refresh');
+            if (btn) btn.style.display = show ? 'none' : 'inline-block';
+        }
+        function showError() {
+            document.getElementById('state-loading').style.display = 'none';
+            document.getElementById('state-error').style.display = 'block';
+            document.getElementById('state-ok').style.display = 'none';
+            var h = document.getElementById('cabinet-hero');
+            var s = document.getElementById('status-bar');
+            if (h) h.style.display = 'none';
+            if (s) s.style.display = 'none';
+            var btn = document.getElementById('btn-refresh');
+            if (btn) btn.style.display = 'inline-block';
+        }
+        function showContent() {
+            document.getElementById('state-loading').style.display = 'none';
+            document.getElementById('state-error').style.display = 'none';
+            document.getElementById('state-ok').style.display = 'block';
+            var h = document.getElementById('cabinet-hero');
+            var s = document.getElementById('status-bar');
+            if (h) h.style.display = 'block';
+            if (s) s.style.display = 'flex';
+            var btn = document.getElementById('btn-refresh');
+            if (btn) btn.style.display = 'inline-block';
+        }
+
+        function applyGoalsData(goalsData) {
+            if (goalsData && goalsData.faction_goals) FACTION_GOALS = goalsData.faction_goals;
+            if (goalsData && goalsData.personal_goals) PERSONAL_GOALS = goalsData.personal_goals;
+            if (goalsData && goalsData.pushed_faction_goals) PUSHED_FACTION_GOALS = goalsData.pushed_faction_goals;
+            if (goalsData && goalsData.pushed_personal_goals) PUSHED_PERSONAL_GOALS = goalsData.pushed_personal_goals;
+        }
+
+        function loadChapterStatus(chapter) {
+            return fetch('../gamestate.json?t=' + Date.now(), { cache: 'no-store' }).then(function(r) {
+                if (!r.ok) return {};
+                return r.json();
+            }).then(function(data) {
+                window.__helixChapterStatus = window.__helixChapterStatus || {};
+                if (data && typeof data === 'object') {
+                    if (data.ch1) window.__helixChapterStatus.ch1 = data.ch1.status || 'stopped';
+                    if (data.ch2) window.__helixChapterStatus.ch2 = data.ch2.status || 'stopped';
+                }
+                return window.__helixChapterStatus;
+            }).catch(function() {
+                window.__helixChapterStatus = window.__helixChapterStatus || { ch1: 'stopped', ch2: 'stopped' };
+                return window.__helixChapterStatus;
+            });
+        }
+
+        function isPhaseRunning(chapter) {
+            var ch = chapter || (window.__helixUsers && currentUserCode ? (window.__helixUsers.find(function(u) { return u.access_code === currentUserCode; }) || {}).chapter : null) || 'ch2';
+            return !!(window.__helixChapterStatus && window.__helixChapterStatus[ch] === 'running');
+        }
+
+        function loadQuestsIfNeeded() {
+            if (FACTION_GOALS && Object.keys(FACTION_GOALS).length > 0) return Promise.resolve();
+            var questsT = Math.floor(Date.now() / 120000);
+            return fetch('../quests.json?t=' + questsT).then(function(r) {
+                if (r.ok) return r.json();
+                return null;
+            }).then(function(goalsData) {
+                if (goalsData) applyGoalsData(goalsData);
+            }).catch(function(e) { return Promise.reject(e); });
+        }
+
+        var USERS_CACHE_MS = 120000; // 2 хв
+        function loadUsers() {
+            if (window.__helixUsers && window.__helixUsersTime && (Date.now() - window.__helixUsersTime) < USERS_CACHE_MS)
+                return Promise.resolve(window.__helixUsers);
+            return fetch('../get_users.php', { cache: 'default' }).then(function(r) {
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                return r.json();
+            }).then(function(users) {
+                if (!Array.isArray(users)) throw new Error('Invalid data');
+                window.__helixUsers = users;
+                window.__helixUsersTime = Date.now();
+                return users;
+            });
+        }
+
+        async function loadProfile() {
+            var accessCode = getAccessCode();
+            if (!accessCode) {
+                window.location.href = 'hub.html';
+                return;
+            }
+            // Пінг для аналітики ГМ (хто заходив, коли)
+            fetch('../ping.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ access_code: accessCode }) }).catch(function() {});
+            showLoading(true);
+            try {
+                var users = await loadUsers();
+                var user = users.find(function(u) { return u.access_code === accessCode; });
+                if (!user) throw new Error('User not found');
+                if (!FACTION_GOALS) FACTION_GOALS = {};
+                if (!PERSONAL_GOALS) PERSONAL_GOALS = {};
+                renderUser(user);
+                showContent();
+                loadChapterStatus(user.chapter || 'ch2');
+                loadQuestsIfNeeded();
+            } catch (e) {
+                if (window.DEBUG) console.error('[PROFILE]', e);
+                showError();
+            }
+        }
+
+        function reloadProfile() { loadProfile(); }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', loadProfile);
+        } else {
+            loadProfile();
+        }
+
+        var MED_STATUS_LABELS = { healthy: 'Здоровий', infected: 'Заражений', unknown: 'Невідомо' };
+        function getMedStatusLabel(s) {
+            if (!s) return 'Невідомо';
+            if (MED_STATUS_LABELS[s]) return MED_STATUS_LABELS[s];
+            if (s === 'OK' || s === 'STABLE') return 'Здоровий';
+            if (s === 'INJURED' || s === 'CRITICAL') return 'Заражений';
+            return 'Невідомо';
+        }
+
+        function renderUser(u) {
+            currentUserCode = u.access_code;
+            document.getElementById('d-code').textContent = u.access_code;
+            document.getElementById('d-name').textContent = u.name;
+            document.getElementById('d-role').textContent = (u.role || '—') + ' // LVL ' + (u.level || '—');
+            var leaderBadge = document.getElementById('d-leader-badge');
+            if (leaderBadge) {
+                if (u.act1_leader) {
+                    leaderBadge.textContent = 'Лідер: ' + (u.name || 'Олімп');
+                    leaderBadge.style.display = 'block';
+                } else {
+                    leaderBadge.style.display = 'none';
+                }
+            }
+            var factionEl = document.getElementById('status-faction');
+            var roleEl = document.getElementById('status-role');
+            var medEl = document.getElementById('status-med');
+            if (factionEl) factionEl.textContent = (u.faction || '—');
+            if (roleEl) roleEl.textContent = (u.role || '—');
+            if (medEl) medEl.textContent = 'Статус: ' + getMedStatusLabel((u.stats && u.stats.status) ? u.stats.status : null);
+            var kiraEl = document.getElementById('status-kira');
+            if (kiraEl) {
+                var kira = u.kira_result && u.kira_result.type;
+                if (kira) { kiraEl.textContent = 'K.I.R.A.: ' + kira; kiraEl.style.display = 'inline'; }
+                else kiraEl.style.display = 'none';
+            }
+            var bunkerEl = document.getElementById('status-bunker');
+            if (bunkerEl) {
+                var bunker = u.bunker_test && u.bunker_test.saved_at;
+                var bunkerType = u.bunker_test && u.bunker_test.result_type ? u.bunker_test.result_type : '';
+                if (bunker) { bunkerEl.textContent = 'Протокол бункера: ' + (bunkerType ? bunkerType : 'пройдено'); bunkerEl.style.display = 'inline'; }
+                else bunkerEl.style.display = 'none';
+            }
+            document.getElementById('hist-text').textContent = u.history || 'Дані відсутні.';
+            var abEl = document.getElementById('abilities-text');
+            if (abEl) abEl.textContent = (u.abilities && u.abilities.trim()) ? u.abilities.trim() : '— не вказано';
+            var qrEl = document.getElementById('qr-container');
+            if (qrEl) {
+                if (typeof QRCode !== 'undefined') {
+                    qrEl.innerHTML = '';
+                    try {
+                        new QRCode(qrEl, { text: u.access_code, width: 150, height: 150, colorDark: '#c9a227', colorLight: '#0a0c10' });
+                    } catch (e) { qrEl.innerHTML = '<span style="color:var(--text); font-size:0.75rem;">QR недоступний</span>'; }
+                } else {
+                    qrEl.innerHTML = '<span style="color:var(--text); font-size:0.75rem;">QR завантажується…</span>';
+                    (function drawQrWhenReady(code) {
+                        var tries = 0;
+                        var id = setInterval(function() {
+                            if (typeof QRCode !== 'undefined') {
+                                clearInterval(id);
+                                qrEl.innerHTML = '';
+                                try { new QRCode(qrEl, { text: code, width: 150, height: 150, colorDark: '#c9a227', colorLight: '#0a0c10' }); } catch (e) {}
+                            } else if (++tries > 50) clearInterval(id);
+                        }, 100);
+                    })(u.access_code);
+                }
+            }
+            if (window.setBGMByFaction && u.faction) window.setBGMByFaction(u.faction);
+            loadAvatar(u.access_code);
+        }
+
+        function closeHistModal() { document.getElementById('modal-hist').style.display = 'none'; }
+        function showHistory() { document.getElementById('modal-hist').style.display = 'flex'; }
+        function closeMissionsModal() { document.getElementById('modal-missions').style.display = 'none'; }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key !== 'Escape') return;
+            var mHist = document.getElementById('modal-hist');
+            var mMissions = document.getElementById('modal-missions');
+            var mAnalyses = document.getElementById('modal-analyses');
+            var mPlaylist = document.getElementById('modal-playlist');
+            if (mHist && mHist.style.display === 'flex') { closeHistModal(); e.preventDefault(); return; }
+            if (mMissions && mMissions.style.display === 'flex') { closeMissionsModal(); e.preventDefault(); return; }
+            if (mAnalyses && mAnalyses.style.display === 'flex') { closeMedbayModal(); e.preventDefault(); return; }
+            if (mPlaylist && mPlaylist.style.display === 'flex') { closePlaylistModal(); e.preventDefault(); }
+        });
+
+        function getAnalysisCooldownMs() {
+            var users = window.__helixUsers;
+            var myCode = getAccessCode();
+            if (!Array.isArray(users)) return 60 * 60 * 1000;
+            var me = users.find(function(x) { return x.access_code === myCode; });
+            var level = Math.max(1, parseInt(me && me.level, 10) || 1);
+            return (60 * 60 * 1000) / level;
+        }
+        function getAnalysisCooldownEnd() {
+            try {
+                var t = sessionStorage.getItem('helix_analysis_cooldown');
+                return t ? parseInt(t, 10) : 0;
+            } catch (e) { return 0; }
+        }
+        function isOnCooldown() {
+            var end = getAnalysisCooldownEnd();
+            return end > Date.now();
+        }
+
+        var CACHED_USERS_TTL_MS = 2 * 60 * 1000; // 2 хв
+        function fillAnalysesTarget(users) {
+            var select = document.getElementById('analyses-target');
+            var msg = document.getElementById('analyses-cooldown-msg');
+            if (!Array.isArray(users)) return;
+            var myCode = getAccessCode();
+            var me = users.find(function(x) { return x.access_code === myCode; });
+            if (!me) return;
+            var myLevel = parseInt(me.level, 10) || 0;
+            var allowed = users.filter(function(x) {
+                if (!x) return false;
+                if (x.role === 'GAMEMASTER' || x.chapter === 'admin') return false;
+                if ((x.chapter || '') !== 'ch2') return false;
+                var l = parseInt(x.level, 10) || 0;
+                return l <= myLevel;
+            });
+            select.innerHTML = '<option value="">— оберіть об\'єкт для дослідження —</option>';
+            allowed.forEach(function(x) {
+                var opt = document.createElement('option');
+                opt.value = x.access_code;
+                opt.textContent = (x.name || x.access_code) + ' (LVL ' + (x.level || '?') + ')';
+                select.appendChild(opt);
+            });
+            if (isOnCooldown()) {
+                var left = Math.ceil((getAnalysisCooldownEnd() - Date.now()) / 60000);
+                msg.textContent = 'Ліміт: наступне замовлення через ' + left + ' хв.';
+                msg.style.display = 'block';
+            }
+        }
+        function loadMyAnalysisResults() {
+            var block = document.getElementById('analyses-results-block');
+            var code = getAccessCode();
+            if (!block || !code) {
+                if (block) block.textContent = 'Увійдіть, щоб бачити свої запити.';
+                return;
+            }
+            block.textContent = 'Завантаження…';
+            fetch('../get_my_analysis_requests.php?code=' + encodeURIComponent(code), { cache: 'no-store' })
+                .then(function(r) { return r.json().catch(function() { return { ok: false, requests: [] }; }); })
+                .then(function(data) {
+                    if (!block) return;
+                    var list = (data && data.requests) ? data.requests : [];
+                    if (list.length === 0) {
+                        block.innerHTML = 'Тут з\'являтимуться результати замовлених аналізів. Поки записів немає.';
+                        return;
+                    }
+                    var statusLabel = function(s) {
+                        if (s === 'done') return 'Виконано';
+                        if (s === 'cancelled') return 'Скасовано';
+                        return 'В очікуванні';
+                    };
+                    var esc = function(s) {
+                        if (s == null) return '';
+                        var d = document.createElement('div');
+                        d.textContent = s;
+                        return d.innerHTML;
+                    };
+                    var html = '';
+                    list.forEach(function(req) {
+                        var date = (req.created_at || '').slice(0, 16).replace('T', ' ');
+                        html += '<p style="margin:6px 0; padding:6px 0; border-bottom:1px solid var(--border);">';
+                        html += '<strong>' + esc(req.target_name || req.target_code || '—') + '</strong> · ' + esc(date) + ' · <span style="color:var(--gold);">' + statusLabel(req.status) + '</span></p>';
+                    });
+                    block.innerHTML = html;
+                })
+                .catch(function() {
+                    if (block) block.textContent = 'Не вдалося завантажити список запитів.';
+                });
+        }
+        function switchMedbayTab(tabId) {
+            var modal = document.getElementById('modal-analyses');
+            if (modal) {
+                modal.querySelectorAll('.tab[data-medbay-tab]').forEach(function(t) { t.classList.toggle('active', t.getAttribute('data-medbay-tab') === tabId); });
+                document.getElementById('medbay-tab-data').style.display = tabId === 'data' ? 'block' : 'none';
+                document.getElementById('medbay-tab-order').style.display = tabId === 'order' ? 'block' : 'none';
+                if (tabId === 'order') loadMyAnalysisResults();
+            }
+        }
+        function closeMedbayModal() {
+            document.getElementById('modal-analyses').style.display = 'none';
+        }
+        function openMedbayModal() {
+            var modal = document.getElementById('modal-analyses');
+            var select = document.getElementById('analyses-target');
+            var msg = document.getElementById('analyses-cooldown-msg');
+            msg.style.display = 'none';
+            msg.textContent = '';
+            var myCode = getAccessCode();
+            var u = window.__helixUsers && Array.isArray(window.__helixUsers) ? window.__helixUsers.find(function(x) { return x.access_code === myCode; }) : null;
+            var statusEl = document.getElementById('medbay-status');
+            var kiraEl = document.getElementById('medbay-kira');
+            var bunkerEl = document.getElementById('medbay-bunker');
+            var capEl = document.getElementById('medbay-capillaries');
+            var hotEl = document.getElementById('medbay-hotbreath');
+            if (statusEl) statusEl.textContent = 'Статус: ' + (u && u.stats && u.stats.status ? getMedStatusLabel(u.stats.status) : '—');
+            if (kiraEl) kiraEl.textContent = 'K.I.R.A.: ' + (u && u.kira_result && u.kira_result.type ? u.kira_result.type : '—');
+            if (bunkerEl) {
+                var bt = u && u.bunker_test;
+                bunkerEl.textContent = 'Протокол бункера: ' + (bt && bt.saved_at ? (bt.result_type || 'пройдено') : '—');
+            }
+            if (capEl) capEl.textContent = 'Чорні капіляри в очах: ' + (u && u.black_capillaries_in_eyes ? 'Так' : 'Ні');
+            if (hotEl) hotEl.textContent = 'Гаряче дихання: ' + (u && u.hot_breathing ? 'Так' : 'Ні');
+            modal.style.display = 'flex';
+            switchMedbayTab('data');
+            loadMyAnalysisResults();
+
+            modal.onclick = function(e) { if (e.target === modal) closeMedbayModal(); };
+
+            if (!myCode) { select.innerHTML = '<option value="">— потрібен вхід</option>'; return; }
+
+            var cached = window.__helixUsers;
+            var cachedTime = window.__helixUsersTime || 0;
+            if (Array.isArray(cached) && (Date.now() - cachedTime) < CACHED_USERS_TTL_MS) {
+                select.innerHTML = '<option value="">— оберіть об\'єкт для дослідження —</option>';
+                fillAnalysesTarget(cached);
+                return;
+            }
+
+            select.innerHTML = '<option value="">— завантаження —</option>';
+            loadUsers().then(function(users) { fillAnalysesTarget(users || []); }).catch(function() { select.innerHTML = '<option value="">— помилка завантаження</option>'; });
+        }
+
+        var playlistTracks = [];
+        var playlistIndex = 0;
+        var playlistAudio = null;
+        var playlistPlaying = false;
+        var AUDIO_BASE = '../assets/audio/';
+
+        function buildPlaylistTracks(config) {
+            var list = [];
+            var ch = config.chapters || {};
+            if (ch.ch1) list.push({ label: 'Глава 1 (ARCTIC)', file: ch.ch1 });
+            if (ch.ch2) list.push({ label: 'Глава 2 (PANDORA)', file: ch.ch2 });
+            var fac = config.factions || {};
+            ['OLYMPOS', 'ORIGIN', 'THEMIS', 'MOIRAI'].forEach(function(f) { 
+                var file = fac[f];
+                if (file && String(file).trim()) {
+                    list.push({ label: f === 'MOIRAI' ? 'МОЙРИ' : f, file: file });
+                }
+            });
+            if (config['3'] && String(config['3']).trim()) list.push({ label: 'Протокол бункера', file: config['3'] });
+            return list;
+        }
+        function renderPlaylistList() {
+            var ul = document.getElementById('playlist-tracks');
+            if (!ul) return;
+            ul.innerHTML = '';
+            playlistTracks.forEach(function(t, i) {
+                var li = document.createElement('li');
+                li.style.padding = '6px 0';
+                li.style.borderBottom = '1px solid var(--border)';
+                li.textContent = (i + 1) + '. ' + t.label;
+                ul.appendChild(li);
+            });
+        }
+        function updatePlaylistCurrent() {
+            var el = document.getElementById('playlist-current');
+            if (!el) return;
+            if (playlistTracks.length === 0) { el.textContent = '—'; return; }
+            var t = playlistTracks[playlistIndex];
+            el.textContent = 'Зараз: ' + (t ? t.label : '—');
+        }
+        function stopPlaylistAudio() {
+            if (playlistAudio) {
+                playlistAudio.pause();
+                playlistAudio.currentTime = 0;
+                playlistAudio.onended = null;
+                playlistAudio = null;
+            }
+            playlistPlaying = false;
+            var btn = document.getElementById('playlist-play-btn');
+            if (btn) btn.textContent = '▶ Відтворити';
+        }
+        function playPlaylistTrack(index) {
+            if (index < 0 || index >= playlistTracks.length) { stopPlaylistAudio(); updatePlaylistCurrent(); return; }
+            playlistIndex = index;
+            updatePlaylistCurrent();
+            stopPlaylistAudio();
+            var t = playlistTracks[index];
+            playlistAudio = new Audio(AUDIO_BASE + t.file);
+            playlistAudio.volume = 0.35;
+            playlistAudio.onended = function() {
+                if (index + 1 < playlistTracks.length) playPlaylistTrack(index + 1);
+                else { playlistPlaying = false; var b = document.getElementById('playlist-play-btn'); if (b) b.textContent = '▶ Відтворити'; }
+            };
+            playlistAudio.play().catch(function() {});
+            playlistPlaying = true;
+            var btn = document.getElementById('playlist-play-btn');
+            if (btn) btn.textContent = '⏸ Пауза';
+        }
+        function playlistPlayPause() {
+            if (playlistTracks.length === 0) return;
+            if (playlistPlaying && playlistAudio) {
+                playlistAudio.pause();
+                playlistPlaying = false;
+                document.getElementById('playlist-play-btn').textContent = '▶ Відтворити';
+                return;
+            }
+            if (playlistAudio && playlistIndex >= 0) playPlaylistTrack(playlistIndex);
+            else playPlaylistTrack(0);
+        }
+        function playlistNext() {
+            if (playlistTracks.length === 0) return;
+            var next = (playlistIndex + 1) % playlistTracks.length;
+            playPlaylistTrack(next);
+        }
+        function openPlaylistModal() {
+            var modal = document.getElementById('modal-playlist');
+            modal.style.display = 'flex';
+            document.getElementById('playlist-tracks').innerHTML = '<li style="color:var(--gold);">Завантаження…</li>';
+            document.getElementById('playlist-current').textContent = '—';
+            fetch('../audio_config.json').then(function(r) { return r.ok ? r.json() : Promise.reject(); })
+                .then(function(config) {
+                    playlistTracks = buildPlaylistTracks(config || {});
+                    renderPlaylistList();
+                    updatePlaylistCurrent();
+                    stopPlaylistAudio();
+                })
+                .catch(function() {
+                    document.getElementById('playlist-tracks').innerHTML = '<li style="color:var(--error);">Не вдалося завантажити плейліст.</li>';
+                    playlistTracks = [];
+                });
+            modal.onclick = function(e) { if (e.target === modal) closePlaylistModal(); };
+        }
+        function closePlaylistModal() {
+            stopPlaylistAudio();
+            document.getElementById('modal-playlist').style.display = 'none';
+        }
+
+        function submitAnalysesOrder() {
+            var select = document.getElementById('analyses-target');
+            var targetCode = select && select.value ? select.value.trim() : '';
+            if (!targetCode) { alert('Оберіть об\'єкт для проведення дослідження.'); return; }
+            if (isOnCooldown()) {
+                var left = Math.ceil((getAnalysisCooldownEnd() - Date.now()) / 60000);
+                alert('Наступне замовлення через ' + left + ' хв.');
+                return;
+            }
+            var myCode = getAccessCode();
+            if (!myCode) { alert('Потрібен вхід.'); return; }
+            var btn = document.querySelector('#modal-analyses button[onclick="submitAnalysesOrder()"]');
+            if (btn) { btn.disabled = true; btn.textContent = 'Відправка…'; }
+            fetch('../submit_analysis_request.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ requester_code: myCode, target_code: targetCode })
+            })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data && data.ok) {
+                        var cooldownMs = getAnalysisCooldownMs();
+                        sessionStorage.setItem('helix_analysis_cooldown', String(Date.now() + cooldownMs));
+                        document.getElementById('modal-analyses').style.display = 'none';
+                        var waitMin = 3 + Math.floor(Math.random() * 13);
+                        var msg = 'Запит на дослідження відправлено в Med-Bay. Результат очікуйте через ' + waitMin + ' хв.';
+                        if (data.target_symptoms) {
+                            var s = data.target_symptoms;
+                            var parts = [];
+                            if (s.black_capillaries_in_eyes) parts.push('чорні капіляри в очах');
+                            if (s.hot_breathing) parts.push('гаряче дихання');
+                            if (parts.length) msg += '\n\nОб\'єкт дослідження (медкарта): ' + parts.join('; ') + '.';
+                        }
+                        alert(msg);
+                    } else {
+                        alert(data && data.error ? data.error : 'Не вдалося відправити запит.');
+                    }
+                })
+                .catch(function() { alert('Помилка мережі. Спробуйте пізніше.'); })
+                .finally(function() {
+                    if (btn) { btn.disabled = false; btn.textContent = 'ЗАМОВИТИ'; }
+                });
+        }
+
+        function fetchLeaderState(u) {
+            if ((u.faction || '') === 'OLYMPOS') {
+                return fetch('../get_leader_votes.php?t=' + Date.now(), { cache: 'no-store' })
+                    .then(function(r) { return r.ok ? r.json() : null; }).catch(function() { return null; });
+            }
+            if ((u.faction || '') === 'THEMIS') {
+                return fetch('../get_leader_votes.php?code=' + encodeURIComponent(u.access_code) + '&t=' + Date.now(), { cache: 'no-store' })
+                    .then(function(r) { return r.ok ? r.json() : null; }).catch(function() { return null; });
+            }
+            return Promise.resolve(null);
+        }
+
+        function openMissions() {
+            document.getElementById('modal-missions').style.display = 'flex';
+            var link = document.getElementById('missions-bunker-link');
+            if (link) link.href = getAccessCode() ? ('bunker_test.html?code=' + encodeURIComponent(getAccessCode())) : 'bunker_test.html';
+            var boxActive = document.getElementById('missions-list');
+            var boxCompleted = document.getElementById('missions-list-completed');
+            if (boxActive) boxActive.innerHTML = '<p style="color:var(--text); padding:12px;">Завантаження…</p>';
+            if (boxCompleted) boxCompleted.innerHTML = '';
+            var accessCode = getAccessCode();
+            if (!accessCode || !currentUserCode) return;
+            var u = window.__helixUsers && Array.isArray(window.__helixUsers) ? window.__helixUsers.find(function(x) { return x.access_code === accessCode; }) : null;
+            function doBuild(user) {
+                if (!user) return;
+                var chapter = user.chapter || 'ch2';
+                var statusP = loadChapterStatus(chapter);
+                statusP.then(function() {
+                    var questsP = loadQuestsIfNeeded();
+                    questsP.then(function() {
+                        var phaseRunning = isPhaseRunning(chapter);
+                        var pushedF = PUSHED_FACTION_GOALS[user.faction];
+                        var pushedP = PUSHED_PERSONAL_GOALS[user.access_code];
+                        var hasPushed = (Array.isArray(pushedF) && pushedF.length > 0) || (Array.isArray(pushedP) && pushedP.length > 0);
+                        if (!phaseRunning && !hasPushed) {
+                            if (boxActive) boxActive.innerHTML = '<p style="color:var(--text); padding:12px;">Цілі та фракційні завдання з\'являться після запуску фази або після відправки їх ГМ.</p>';
+                            if (boxCompleted) boxCompleted.innerHTML = '';
+                            return;
+                        }
+                        var leaderP = fetchLeaderState(user);
+                        var takenP = loadTakenMissions(user.access_code);
+                        Promise.all([leaderP, takenP]).then(function(res) {
+                            var leaderData = res[0];
+                            var takenList = res[1];
+                            buildMissions(user, { leaderState: leaderData, taken: takenList });
+                        }).catch(function() {
+                            if (boxActive) boxActive.innerHTML = '<p style="color:var(--error); padding:12px;">Не вдалося завантажити. Спробуйте ще раз.</p>';
+                        });
+                    }).catch(function() {
+                        if (boxActive) boxActive.innerHTML = '<p style="color:var(--error); padding:12px;">Не вдалося завантажити. Спробуйте ще раз.</p>';
+                    });
+                }).catch(function() {
+                    if (boxActive) boxActive.innerHTML = '<p style="color:var(--error); padding:12px;">Не вдалося завантажити статус фази. Спробуйте ще раз.</p>';
+                    if (boxCompleted) boxCompleted.innerHTML = '';
+                });
+            }
+            if (u) {
+                doBuild(u);
+            } else {
+                loadUsers().then(function(users) {
+                    var user = Array.isArray(users) ? users.find(function(x) { return x.access_code === accessCode; }) : null;
+                    doBuild(user);
+                }).catch(function() {
+                    if (boxActive) boxActive.innerHTML = '<p style="color:var(--error); padding:12px;">Помилка мережі.</p>';
+                });
+            }
+        }
+
+        function loadTakenMissionsSync(code) {
+            try {
+                var raw = sessionStorage.getItem('helix_missions_' + code);
+                return raw ? JSON.parse(raw) : [];
+            } catch (e) { return []; }
+        }
+        async function loadTakenMissions(code) {
+            try {
+                var res = await fetch('../get_missions.php?code=' + encodeURIComponent(code) + '&t=' + Date.now(), { cache: 'no-store' });
+                if (res.ok) {
+                    var list = await res.json();
+                    if (Array.isArray(list)) {
+                        sessionStorage.setItem('helix_missions_' + code, JSON.stringify(list));
+                        return list;
+                    }
+                }
+            } catch (e) {}
+            return loadTakenMissionsSync(code);
+        }
+        function saveTakenMissionsSync(code, list) {
+            sessionStorage.setItem('helix_missions_' + code, JSON.stringify(list));
+        }
+        async function saveTakenMissions(code, list) {
+            saveTakenMissionsSync(code, list);
+            try {
+                var res = await fetch('../save_missions.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code: code, missions: list })
+                });
+                var json = await res.json().catch(function() { return {}; });
+                if (json.ok) return;
+            } catch (e) {}
+        }
+
+        var leaderState = null;
+
+        function switchMissionsTab(tabId) {
+            document.querySelectorAll('.missions-tabs .tab').forEach(function(t) { t.classList.toggle('active', t.getAttribute('data-tab') === tabId); });
+            document.getElementById('missions-tab-active').classList.toggle('active', tabId === 'active');
+            document.getElementById('missions-tab-completed').classList.toggle('active', tabId === 'completed');
+        }
+
+        function buildMissions(u, opts) {
+            var boxActive = document.getElementById('missions-list');
+            var boxCompleted = document.getElementById('missions-list-completed');
+            if (!boxActive || !boxCompleted) return;
+            if (boxActive) boxActive.innerHTML = '<p style="color:var(--text); padding:12px;">Завантаження…</p>';
+            if (boxCompleted) boxCompleted.innerHTML = '';
+            var phaseRunning = isPhaseRunning(u.chapter || 'ch2');
+            var pushedF = PUSHED_FACTION_GOALS[u.faction] || [];
+            var pushedP = PUSHED_PERSONAL_GOALS[u.access_code] || [];
+            var factionGoals = (FACTION_GOALS[u.faction] || []).filter(function(g) { return phaseRunning || pushedF.indexOf(g.id) !== -1; });
+            var personalGoals = (PERSONAL_GOALS[u.access_code] || []).filter(function(g) { return phaseRunning || pushedP.indexOf(g.id) !== -1; });
+            var all = factionGoals.map(function(g) { return Object.assign({}, g, { scope: 'Фракція' }); })
+                .concat(personalGoals.map(function(g) { return Object.assign({}, g, { scope: 'Особиста' }); }));
+            var leaderPromise, takenPromise;
+            if (opts && opts.leaderState !== undefined) {
+                leaderState = opts.leaderState;
+                leaderPromise = Promise.resolve();
+            } else {
+                leaderPromise = fetchLeaderState(u).then(function(data) {
+                    leaderState = data;
+                    if (!leaderState && (u.faction || '') === 'OLYMPOS') leaderState = { olympos: [], votes: {}, leader: null, total_olympos: 0 };
+                    if (!leaderState && (u.faction || '') === 'THEMIS') leaderState = { olympos: [], leader: null, themis_attempts_left: 3, themis_confirmed: false };
+                });
+            }
+            takenPromise = (opts && Array.isArray(opts.taken)) ? Promise.resolve(opts.taken) : loadTakenMissions(u.access_code);
+            Promise.all([leaderPromise, takenPromise]).then(function(res) {
+                var taken = res[1];
+                buildMissionsRender(u, taken, leaderState, all, boxActive, boxCompleted);
+            }).catch(function() {
+                if (boxActive) boxActive.innerHTML = '<p style="color:var(--error); padding:12px;">Не вдалося завантажити дані місій. Спробуйте ще раз.</p>';
+                if (boxCompleted) boxCompleted.innerHTML = '';
+            });
+        }
+
+        function buildMissionsRender(u, taken, leaderState, all, boxActive, boxCompleted) {
+            function isCompleted(goal) {
+                if (goal.action === 'biometric_scan' || goal.id === 'F_OLYMPOS_BIOMETRIC') return !!u.biometric_scan_passed;
+                if (goal.action === 'full_access' || goal.id === 'F_OLYMPOS_ACT1') return !!u.act1_full_access_used;
+                if (goal.action === 'vote_leader' || goal.id === 'F_OLYMPOS_ACT1_LEADER') return !!(leaderState && leaderState.leader);
+                if (goal.action === 'confirm_leader' || goal.id === 'F_THEMIS_LEADER_CONFIRM') return !!(leaderState && leaderState.themis_confirmed);
+                return taken.indexOf(goal.id) !== -1;
+            }
+            var activeGoals = all.filter(function(g) { return !isCompleted(g); });
+            var completedGoals = all.filter(isCompleted);
+
+            boxActive.innerHTML = '';
+            boxCompleted.innerHTML = '';
+
+            function renderGoal(goal, container, isCompletedPane) {
+                var wrap = document.createElement('div');
+                wrap.className = 'mission-item' + (isCompletedPane ? ' completed-item' : '');
+                var titleEl = document.createElement('div');
+                titleEl.className = 'mission-title';
+                titleEl.textContent = goal.title || '';
+                var metaEl = document.createElement('div');
+                metaEl.className = 'mission-meta';
+                metaEl.textContent = '[ ' + (goal.scope || '') + ' ]';
+                var textEl = document.createElement('div');
+                textEl.className = 'mission-text';
+                textEl.textContent = goal.text || '';
+                wrap.appendChild(titleEl);
+                wrap.appendChild(metaEl);
+                wrap.appendChild(textEl);
+                var btn = document.createElement('button');
+                btn.className = 'mission-btn';
+                if (goal.action === 'biometric_scan' || goal.id === 'F_OLYMPOS_BIOMETRIC') {
+                    if (u.biometric_scan_passed) {
+                        btn.textContent = 'Виконано';
+                        btn.classList.add('taken');
+                        btn.disabled = true;
+                    } else {
+                        btn.textContent = 'Пройти термінал';
+                        var link = 'biometric_scan.html' + (u.access_code ? '?code=' + encodeURIComponent(u.access_code) : '');
+                        btn.onclick = function() { window.location.href = link; };
+                    }
+                } else if (goal.action === 'full_access' || goal.id === 'F_OLYMPOS_ACT1') {
+                    if (u.act1_full_access_used) {
+                        btn.textContent = 'Виконано';
+                        btn.classList.add('taken');
+                        btn.disabled = true;
+                    } else {
+                        btn.textContent = 'Повний доступ';
+                        btn.onclick = function() { doFullAccess(u); };
+                    }
+                } else if (goal.action === 'vote_leader' || goal.id === 'F_OLYMPOS_ACT1_LEADER') {
+                    if ((u.faction || '') !== 'OLYMPOS') {
+                        btn.textContent = '—';
+                        btn.disabled = true;
+                    } else if (leaderState && leaderState.leader) {
+                        btn.textContent = 'Лідер обрано';
+                        btn.classList.add('taken');
+                        btn.disabled = true;
+                        var leaderName = leaderState.leader_name || leaderState.leader;
+                        var msg = document.createElement('div');
+                        msg.className = 'mission-text';
+                        msg.style.marginTop = '8px';
+                        msg.style.color = 'var(--accent)';
+                        msg.textContent = 'Лідер обрано: ' + leaderName + '. У всіх Олімпа +1 рівень доступу.';
+                        wrap.appendChild(msg);
+                    } else {
+                        var sel = document.createElement('select');
+                        sel.className = 'mission-btn';
+                        sel.style.marginBottom = '8px';
+                        sel.innerHTML = '<option value="">— оберіть лідера —</option>';
+                        (leaderState && leaderState.olympos || []).forEach(function(p) {
+                            var opt = document.createElement('option');
+                            opt.value = p.access_code;
+                            opt.textContent = (p.name || p.access_code);
+                            sel.appendChild(opt);
+                        });
+                        var myVote = leaderState && leaderState.votes && leaderState.votes[u.access_code];
+                        var changesUsed = (leaderState && leaderState.vote_changes && leaderState.vote_changes[u.access_code]) || 0;
+                        if (myVote) sel.value = myVote;
+                        wrap.appendChild(sel);
+                        if (myVote && changesUsed >= 2) {
+                            sel.disabled = true;
+                            btn.textContent = 'Ліміт змін вичерпано';
+                            btn.classList.add('taken');
+                            btn.disabled = true;
+                            var limitMsg = document.createElement('div');
+                            limitMsg.className = 'mission-text';
+                            limitMsg.style.marginTop = '6px';
+                            limitMsg.style.color = 'var(--gold)';
+                            limitMsg.style.fontSize = '0.8rem';
+                            limitMsg.textContent = 'Змінити голос можна лише двічі. Ви вже вичерпали ліміт.';
+                            wrap.appendChild(limitMsg);
+                        } else if (myVote) {
+                            var left = 2 - changesUsed;
+                            btn.textContent = 'Змінити голос (ще ' + left + ' разів)';
+                            btn.onclick = function() {
+                                var code = sel.value ? sel.value.trim() : '';
+                                if (!code) { alert('Оберіть кандидата зі списку.'); return; }
+                                submitLeaderVote(u.access_code, code, wrap, u);
+                            };
+                            var hintMsg = document.createElement('div');
+                            hintMsg.className = 'mission-text';
+                            hintMsg.style.marginTop = '6px';
+                            hintMsg.style.color = 'var(--gold)';
+                            hintMsg.style.fontSize = '0.8rem';
+                            hintMsg.textContent = 'Увага: змінити свій голос можна лише двічі.';
+                            wrap.appendChild(hintMsg);
+                        } else {
+                            btn.textContent = 'Голосувати';
+                            btn.onclick = function() {
+                                var code = sel.value ? sel.value.trim() : '';
+                                if (!code) { alert('Оберіть кандидата зі списку.'); return; }
+                                submitLeaderVote(u.access_code, code, wrap, u);
+                            };
+                            var hintMsg = document.createElement('div');
+                            hintMsg.className = 'mission-text';
+                            hintMsg.style.marginTop = '6px';
+                            hintMsg.style.color = 'var(--gold)';
+                            hintMsg.style.fontSize = '0.8rem';
+                            hintMsg.textContent = 'Увага: змінити свій голос можна лише двічі.';
+                            wrap.appendChild(hintMsg);
+                        }
+                    }
+                } else if (goal.action === 'confirm_leader' || goal.id === 'F_THEMIS_LEADER_CONFIRM') {
+                    if ((u.faction || '') !== 'THEMIS') {
+                        btn.textContent = '—';
+                        btn.disabled = true;
+                    } else if (leaderState && leaderState.themis_confirmed) {
+                        btn.textContent = 'Підтверджено';
+                        btn.classList.add('taken');
+                        btn.disabled = true;
+                        var msg = document.createElement('div');
+                        msg.className = 'mission-text';
+                        msg.style.marginTop = '8px';
+                        msg.style.color = 'var(--accent)';
+                        msg.textContent = 'Повноваження лідера підтверджено. Ваш рівень доступу +1.';
+                        wrap.appendChild(msg);
+                    } else if (!leaderState || !leaderState.leader) {
+                        btn.style.display = 'none';
+                    } else {
+                        var attemptsLeft = leaderState.themis_attempts_left ?? 3;
+                        if (attemptsLeft <= 0) {
+                            btn.textContent = 'Спроби вичерпано';
+                            btn.classList.add('taken');
+                            btn.disabled = true;
+                            var msg = document.createElement('div');
+                            msg.className = 'mission-text';
+                            msg.style.marginTop = '6px';
+                            msg.style.color = 'var(--error)';
+                            msg.textContent = 'Усього 3 спроби. Ви вже вичерпали ліміт. Рівень доступу: 1.';
+                            wrap.appendChild(msg);
+                        } else {
+                            var sel = document.createElement('select');
+                            sel.className = 'mission-btn';
+                            sel.style.marginBottom = '8px';
+                            sel.innerHTML = '<option value="">— оберіть лідера Олімпа (Іларія) —</option>';
+                            (leaderState.olympos || []).forEach(function(p) {
+                                var opt = document.createElement('option');
+                                opt.value = p.access_code;
+                                opt.textContent = (p.name || p.access_code);
+                                sel.appendChild(opt);
+                            });
+                            wrap.appendChild(sel);
+                            var warn = document.createElement('div');
+                            warn.className = 'mission-text';
+                            warn.style.marginTop = '6px';
+                            warn.style.color = 'var(--gold)';
+                            warn.style.fontSize = '0.8rem';
+                            warn.textContent = 'Усього 3 спроби. Залишилось спроб: ' + attemptsLeft;
+                            wrap.appendChild(warn);
+                            btn.textContent = 'Підтвердити';
+                            btn.onclick = function() {
+                                var code = sel.value ? sel.value.trim() : '';
+                                if (!code) { alert('Оберіть лідера зі списку.'); return; }
+                                submitThemisLeaderConfirm(u.access_code, code, wrap, u);
+                            };
+                        }
+                    }
+                } else if (taken.indexOf(goal.id) !== -1) {
+                    btn.textContent = 'ВЗЯТО';
+                    btn.classList.add('taken');
+                    btn.disabled = true;
+                } else {
+                    btn.textContent = 'ВЗЯТИ';
+                    btn.onclick = function() { takeMission(u.access_code, goal.id, u); };
+                }
+                wrap.appendChild(btn);
+                container.appendChild(wrap);
+            }
+
+            if (all.length === 0) {
+                boxActive.innerHTML = '<p>Для цього профілю цілі ще не призначені.</p>';
+                boxCompleted.innerHTML = '<p>Виконаних цілей поки немає.</p>';
+                return;
+            }
+            activeGoals.forEach(function(goal) { renderGoal(goal, boxActive, false); });
+            completedGoals.forEach(function(goal) { renderGoal(goal, boxCompleted, true); });
+            if (completedGoals.length === 0) {
+                boxCompleted.innerHTML = '<p style="color:var(--text); font-size:0.85rem;">Виконаних цілей поки немає.</p>';
+            }
+        }
+
+        function submitLeaderVote(voterCode, candidateCode, wrap, u) {
+            fetch('../submit_leader_vote.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ access_code: voterCode, candidate_code: candidateCode })
+            })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data && data.ok) {
+                        if (data.leader) {
+                            alert(data.message || 'Лідер обрано. У всіх Олімпа +1 рівень доступу.');
+                            closeMissionsModal();
+                            loadProfile();
+                        } else {
+                            leaderState = null;
+                            buildMissions(u);
+                        }
+                    } else {
+                        alert(data && data.error ? data.error : 'Помилка.');
+                    }
+                })
+                .catch(function() { alert('Помилка мережі.'); });
+        }
+
+        function submitThemisLeaderConfirm(themisCode, candidateCode, wrap, u) {
+            fetch('../submit_themis_leader_confirm.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ access_code: themisCode, candidate_code: candidateCode })
+            })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data && data.ok) {
+                        alert(data.message || (data.correct ? 'Правильно. +1 рівень доступу.' : 'Невірно. Рівень доступу встановлено на 1.'));
+                        leaderState = null;
+                        buildMissions(u);
+                        if (data.correct) {
+                            closeMissionsModal();
+                            loadProfile();
+                        }
+                    } else {
+                        alert(data && data.error ? data.error : 'Помилка.');
+                    }
+                })
+                .catch(function() { alert('Помилка мережі.'); });
+        }
+
+        async function takeMission(code, goalId, u) {
+            var taken = await loadTakenMissions(code);
+            if (taken.indexOf(goalId) !== -1) return;
+            if (taken.length >= 2 && !confirm('У вас вже 2 цілі. Взяти ще?')) return;
+            taken.push(goalId);
+            await saveTakenMissions(code, taken);
+            if (u) buildMissions(u);
+        }
+
+        var FULL_ACCESS_MSG = 'Ви намагаєтеся взяти управління комплексом під контроль. Система видає сповіщення: «ADMINISTRATOR_OFFLINE. Гієрархія порушена». Оберіть нового лідера.';
+        function doFullAccess(u) {
+            alert(FULL_ACCESS_MSG);
+            var code = u.access_code;
+            fetch('../act1_full_access.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ access_code: code })
+            })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data && data.ok) {
+                        if (data.already_used) alert(data.message || 'Вже виконано');
+                        closeMissionsModal();
+                        loadProfile();
+                    } else {
+                        alert(data && data.error ? data.error : 'Помилка виконання.');
+                    }
+                })
+                .catch(function() { alert('Помилка мережі.'); });
+        }
+
+        function loadAvatar(code, knownFile) {
+            var img = document.getElementById('av-img');
+            if (!img) return;
+            code = (code || '').toString().trim();
+            var placeholder = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEyMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEyMCIgZmlsbD0iIzBhMGMxMCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LXNpemU9IjE0IiBmaWxsPSIjMWEyMzMyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+PC90ZXh0Pjwvc3ZnPg==';
+            if (!code && !knownFile) {
+                img.src = placeholder;
+                return;
+            }
+            var ts = '?t=' + Date.now();
+            if (knownFile && String(knownFile).length > 0) {
+                img.src = '../uploads/' + knownFile + ts;
+                img.onerror = function() {
+                    this.onerror = null;
+                    this.src = placeholder;
+                };
+                return;
+            }
+            img.src = placeholder;
+            img.onload = function() {
+                this.onload = null;
+                this.src = '../uploads/' + code + '.jpg' + ts;
+            };
+            img.onerror = function() {
+                this.onerror = null;
+                this.src = '../uploads/' + code + '.png' + ts;
+                this.onerror = function() {
+                    this.onerror = null;
+                    this.src = placeholder;
+                };
+            };
+        }
+
+        async function uploadAvatar() {
+            var file = document.getElementById('upFile').files[0];
+            var code = getAccessCode();
+            if (!file || !code) {
+                if (!file) alert('Оберіть фото (JPEG або PNG).');
+                else alert('Потрібен вхід (код доступу).');
+                return;
+            }
+            var formData = new FormData();
+            formData.append('avatar', file);
+            formData.append('access_code', code);
+            var uploadUrl = new URL('../upload.php', window.location.href).href;
+            try {
+                var res = await fetch(uploadUrl, { method: 'POST', body: formData });
+                var text = await res.text();
+                var json = {};
+                try { json = text ? JSON.parse(text) : {}; } catch (e) {}
+                if (res.ok && json.ok) {
+                    loadAvatar(code, json.file || '');
+                    var upFile = document.getElementById('upFile');
+                    if (upFile) upFile.value = '';
+                    alert('Фото збережено.');
+                } else {
+                    var msg = (json && json.error) ? json.error : (res.status ? 'Помилка ' + res.status + (res.statusText ? ': ' + res.statusText : '') : ERR_MSG);
+                    alert(msg);
+                }
+            } catch (e) {
+                alert('Мережа або сервер недоступні. Перевірте, що відкрито сайт через HTTP(S), а не як файл. Помилка: ' + (e && e.message ? e.message : 'unknown'));
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>HELIX | ПРОТОКОЛ БУНКЕРА</title>
+    <style>
+        :root { --bg: #0a0c10; --panel: #0e1117; --border: #1a2332; --gold: #c9a227; --gold-dim: rgba(201,162,39,0.5); --text: #b8c4ce; --accent: #00d4aa; --cyan: #00f0ff; }
+        * { box-sizing: border-box; }
+        body { background: var(--bg); color: var(--text); min-height: 100vh; margin: 0; font-family: ui-monospace, 'Cascadia Code', monospace; font-size: 14px; display: flex; flex-direction: column; align-items: center; padding: 20px 16px; position: relative; overflow-x: hidden; transition: filter 0.1s; }
+        body.shake { animation: screen-shake 0.15s ease-out; }
+        body.flash-red { animation: flash-red 0.2s ease-out; }
+        body.flash-green { animation: flash-green 0.12s ease-out; }
+        @keyframes screen-shake { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(-3px, 1px); } 50% { transform: translate(2px, -2px); } 75% { transform: translate(1px, 2px); } }
+        @keyframes flash-red { 0%, 100% { box-shadow: inset 0 0 0 0 rgba(180,0,0,0); } 50% { box-shadow: inset 0 0 120px 40px rgba(120,0,0,0.4); } }
+        @keyframes flash-green { 0%, 100% { box-shadow: inset 0 0 0 0 rgba(0,80,60,0); } 50% { box-shadow: inset 0 0 80px 30px rgba(0,60,40,0.25); } }
+
+        .vignette { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.6) 100%); pointer-events: none; z-index: 9998; }
+        .glitch-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(180deg, transparent 48%, rgba(0,0,0,0.08) 50%, transparent 52%); background-size: 100% 3px; pointer-events: none; z-index: 9999; opacity: 0.7; }
+        .glitch-overlay::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px); pointer-events: none; }
+        .noise { position: fixed; top: 0; left: 0; width: 100%; height: 100%; opacity: 0.04; pointer-events: none; z-index: 10000; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+
+        .test-wrap { width: 100%; max-width: 640px; position: relative; z-index: 1; transition: transform 0.05s; }
+        .test-wrap.glitch-burst { animation: wrap-glitch 0.2s ease-out; }
+        @keyframes wrap-glitch { 0% { transform: translate(0, 0) skew(0deg); filter: hue-rotate(0deg); } 20% { transform: translate(-4px, 0) skew(-0.5deg); filter: hue-rotate(5deg); } 40% { transform: translate(4px, 1px) skew(0.5deg); filter: hue-rotate(-5deg); } 60% { transform: translate(-2px, -1px) skew(0deg); } 100% { transform: translate(0, 0) skew(0deg); filter: hue-rotate(0deg); } }
+
+        .glitch-title { position: relative; color: var(--gold); font-family: Georgia, serif; font-size: clamp(1.2rem, 4vw, 1.5rem); letter-spacing: 3px; margin-bottom: 24px; text-align: center; text-shadow: 0 0 10px rgba(201,162,39,0.3); }
+        .glitch-title::before, .glitch-title::after { content: attr(data-text); position: absolute; left: 0; top: 0; width: 100%; height: 100%; background: var(--bg); }
+        .glitch-title::before { animation: glitch-1 3s infinite linear alternate-reverse; clip-path: inset(40% 0 30% 0); color: #00f0ff; transform: translate(-2px, 0); }
+        .glitch-title::after { animation: glitch-2 2.5s infinite linear alternate-reverse; clip-path: inset(60% 0 20% 0); color: #ff00c1; transform: translate(2px, 0); }
+        @keyframes glitch-1 { 0%, 100% { opacity: 0.8; transform: translate(-2px, 0); } 20% { opacity: 0; } 25% { opacity: 1; transform: translate(1px, -1px); } 50% { opacity: 0.8; transform: translate(-1px, 1px); } 75% { opacity: 1; transform: translate(2px, 0); } }
+        @keyframes glitch-2 { 0%, 100% { opacity: 0; } 15% { opacity: 1; transform: translate(2px, 1px); } 40% { opacity: 0; } 55% { opacity: 0.9; transform: translate(-2px, -1px); } 90% { opacity: 0; } }
+
+        .intro-block { background: var(--panel); border: 1px solid var(--border); border-left: 4px solid var(--gold); padding: 24px; margin-bottom: 24px; line-height: 1.7; box-shadow: 0 0 20px rgba(0,0,0,0.3); }
+        .intro-block p { margin: 0 0 12px; }
+        .intro-block p:last-child { margin-bottom: 0; }
+
+        .q-block { background: var(--panel); border: 1px solid var(--border); padding: 20px; margin-bottom: 20px; box-shadow: 0 0 15px rgba(0,0,0,0.2); }
+        .q-block.glitch-q { animation: q-glitch 0.25s ease-out; }
+        @keyframes q-glitch { 0% { transform: translateX(0); box-shadow: 0 0 15px rgba(0,0,0,0.2); } 33% { transform: translateX(-3px); box-shadow: 3px 0 0 rgba(255,0,80,0.2), -3px 0 0 rgba(0,255,200,0.2); } 66% { transform: translateX(3px); box-shadow: -2px 0 0 rgba(0,255,200,0.15), 2px 0 0 rgba(255,0,80,0.15); } 100% { transform: translateX(0); box-shadow: 0 0 15px rgba(0,0,0,0.2); } }
+        .q-num { color: var(--gold); font-size: 0.75rem; letter-spacing: 2px; margin-bottom: 8px; text-shadow: 0 0 8px rgba(201,162,39,0.2); }
+        .q-title { font-family: Georgia, serif; color: #e2e8f0; font-size: 1rem; margin-bottom: 12px; position: relative; }
+        .q-title.glitch-text::before { content: attr(data-text); position: absolute; left: -2px; top: 0; color: #ff0066; opacity: 0.7; clip-path: inset(0 60% 0 0); animation: text-glitch 0.15s; }
+        .q-title.glitch-text::after { content: attr(data-text); position: absolute; left: 2px; top: 0; color: #00ffcc; opacity: 0.6; clip-path: inset(0 0 0 70%); animation: text-glitch 0.15s 0.05s; }
+        @keyframes text-glitch { 0% { opacity: 0; transform: translate(0,0); } 50% { opacity: 0.8; transform: translate(2px,-1px); } 100% { opacity: 0; transform: translate(-1px,1px); } }
+        .q-text { color: var(--text); line-height: 1.6; margin-bottom: 16px; white-space: pre-line; }
+        .q-label { font-size: 0.7rem; color: var(--gold-dim); margin-bottom: 8px; }
+        .options-list { display: flex; flex-direction: column; gap: 10px; }
+        .opt-btn { background: #111; border: 1px solid var(--border); color: var(--text); padding: 14px 16px; text-align: left; cursor: pointer; font-family: inherit; font-size: 0.9rem; line-height: 1.4; transition: border-color 0.2s, color 0.2s, box-shadow 0.2s; }
+        .opt-btn:hover { border-color: var(--gold); color: var(--gold); box-shadow: 0 0 12px rgba(201,162,39,0.15); }
+        .opt-btn.selected { border-color: var(--gold); color: var(--gold); background: rgba(201,162,39,0.08); box-shadow: 0 0 10px rgba(201,162,39,0.2); }
+        .opt-btn.glitch-opt { animation: opt-glitch 0.12s; }
+        @keyframes opt-glitch { 0%, 100% { filter: none; } 50% { filter: hue-rotate(90deg) contrast(1.2); } }
+
+        .system-msg { font-size: 0.8rem; color: var(--cyan); opacity: 0.95; margin: 16px 0; padding: 8px 0; border-top: 1px dashed var(--border); animation: flicker 4s infinite, system-pulse 8s infinite; }
+        @keyframes flicker { 0%, 85%, 100% { opacity: 0.95; } 86% { opacity: 0.4; } 87% { opacity: 1; } 88% { opacity: 0.3; } 89% { opacity: 0.9; } 90% { opacity: 0.6; } 92% { opacity: 0.7; } 94% { opacity: 1; } 96% { opacity: 0.5; } 98% { opacity: 0.9; } }
+        @keyframes system-pulse { 0%, 100% { color: var(--cyan); text-shadow: 0 0 8px rgba(0,240,255,0.3); } 25% { color: #00ffcc; text-shadow: 0 0 12px rgba(0,255,200,0.4); } 50% { color: var(--cyan); text-shadow: 0 0 6px rgba(0,240,255,0.2); } 75% { color: #66ffff; text-shadow: 0 0 10px rgba(100,255,255,0.35); } }
+        .system-msg.creepy { animation: flicker 2s infinite, system-red 3s infinite; }
+        @keyframes system-red { 0%, 70%, 100% { color: var(--cyan); } 72% { color: #ff4444; text-shadow: 0 0 15px rgba(255,60,60,0.6); } 74% { color: var(--cyan); } 76% { color: #ff6666; } 78% { color: var(--cyan); } }
+
+        .nav-row { display: flex; justify-content: space-between; align-items: center; margin-top: 24px; flex-wrap: wrap; gap: 12px; }
+        .btn-corp { background: transparent; border: 1px solid var(--border); color: var(--text); padding: 12px 20px; font-family: inherit; font-size: 0.8rem; cursor: pointer; text-decoration: none; display: inline-block; transition: border-color 0.2s, color 0.2s, box-shadow 0.2s; }
+        .btn-corp:hover { border-color: var(--gold); color: var(--gold); box-shadow: 0 0 12px rgba(201,162,39,0.2); }
+        .btn-corp.primary { border-color: var(--gold); color: var(--gold); }
+        .btn-corp.primary:hover { background: rgba(201,162,39,0.15); box-shadow: 0 0 15px rgba(201,162,39,0.25); }
+        .btn-corp:disabled { opacity: 0.5; cursor: not-allowed; }
+        .pronoun-btn.selected { border-color: var(--gold); color: var(--gold); background: rgba(201,162,39,0.08); }
+        #result-screen { display: none; text-align: center; padding: 40px 20px; }
+        #result-screen .res-title { font-family: Georgia, serif; font-size: 1.5rem; color: var(--gold); margin-bottom: 16px; text-shadow: 0 0 15px rgba(201,162,39,0.4); }
+        #result-screen .res-desc { color: var(--text); line-height: 1.6; margin-bottom: 24px; }
+
+        .flash-msg { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 0.9rem; letter-spacing: 4px; color: #ff2244; text-shadow: 0 0 20px rgba(255,0,60,0.8); z-index: 10001; pointer-events: none; opacity: 0; white-space: nowrap; }
+        .flash-msg.show { animation: flash-msg-in 0.25s forwards; }
+        .flash-msg.hide { animation: flash-msg-out 0.2s forwards; }
+        @keyframes flash-msg-in { 0% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); } 70% { opacity: 1; transform: translate(-50%, -50%) scale(1.02); } 100% { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
+        @keyframes flash-msg-out { 0% { opacity: 1; } 100% { opacity: 0; } }
+        .rgb-split { animation: rgb-split 0.3s ease-out; }
+        @keyframes rgb-split { 0% { text-shadow: 0 0 0 transparent; } 50% { text-shadow: -2px 0 0 #f00, 2px 0 0 #0ff; } 100% { text-shadow: 0 0 0 transparent; } }
+    </style>
+</head>
+<body>
+    <div class="vignette" aria-hidden="true"></div>
+    <div class="glitch-overlay" aria-hidden="true"></div>
+    <div class="noise" aria-hidden="true"></div>
+    <div class="flash-msg" id="flash-msg" aria-live="polite"></div>
+    <div class="test-wrap" id="test-wrap">
+        <h1 class="glitch-title" data-text="ПРОТОКОЛ БУНКЕРА">ПРОТОКОЛ БУНКЕРА</h1>
+
+        <div id="intro-screen">
+            <div class="intro-block">
+                <p class="pronoun-label" style="color:var(--gold-dim); font-size:0.8rem; margin-bottom:10px;">Як до Вас звертатись?</p>
+                <div class="pronoun-btns" style="display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap;">
+                    <button type="button" class="btn-corp pronoun-btn" data-pronoun="vin" onclick="setPronoun('vin')">Він</button>
+                    <button type="button" class="btn-corp pronoun-btn" data-pronoun="vona" onclick="setPronoun('vona')">Вона</button>
+                    <button type="button" class="btn-corp pronoun-btn" data-pronoun="vony" onclick="setPronoun('vony')">Вони</button>
+                </div>
+                <p>Ти перебуваєш у бункері — ізольованому вузлі системи, створеної для виживання людства.</p>
+                <p>Система повідомляє, що все стабільно.</p>
+                <p>Проте деякі показники не сходяться. Дані пошкоджені. Частина журналів — відсутня.</p>
+                <p id="intro-last-p">Тут немає правильних рішень. Але кожен твій крок має наслідки.</p>
+            </div>
+            <div style="text-align: center;">
+                <button type="button" class="btn-corp primary" onclick="startTest()">ПОЧАТИ ПРОТОКОЛ</button>
+            </div>
+        </div>
+
+        <div id="quiz-screen" style="display: none;">
+            <div id="q-container"></div>
+            <div class="nav-row">
+                <button type="button" class="btn-corp" id="btn-prev" onclick="prevQ()">← НАЗАД</button>
+                <button type="button" class="btn-corp primary" id="btn-next" onclick="nextQ()">ДАЛІ →</button>
+            </div>
+        </div>
+
+        <div id="result-screen">
+            <div class="res-title">ПРОТОКОЛ ЗАФІКСОВАНО</div>
+            <div class="res-desc" id="result-desc">Система фіксує зміну пульсу та затримки в ухваленні рішень. Результати збережено в медкарті.</div>
+            <p id="result-type" style="margin:16px 0 0; font-size:1rem; color:var(--gold); font-weight:bold; display:none;"></p>
+            <a href="profile.html" class="btn-corp primary" id="result-back">ПОВЕРНУТИСЬ ДО КАБІНЕТУ</a>
+            <p style="margin-top: 20px; font-size: 0.75rem; color: var(--gold-dim);">Результат відображається в Med-Bay та у вашому кабінеті.</p>
+        </div>
+    </div>
+
+    <script defer>
+        function getAccessCode() {
+            var p = new URLSearchParams(window.location.search);
+            var code = p.get('code');
+            if (code) return code;
+            try {
+                if (window.helixSessionStore && helixSessionStore.getStoredCode) return helixSessionStore.getStoredCode() || '';
+                return sessionStorage.getItem('helix_access_code') || '';
+            } catch (e) { return ''; }
+        }
+        var QUESTIONS = [
+            { title: 'Заборонена інформація', text: 'Тобі відкрили таємницю майбутнього людства і можливий спосіб його порятунку. Якщо інформація потрапляє не в ті руки, ризики непередбачувані.\n\nТвої дії:', opts: [
+                { letter: 'A', text: 'Працюю з цим самостійно, за допомогою ШР (Штучного Розуму)' },
+                { letter: 'B', text: 'Передаю кільком надійним людям і усуваюсь' },
+                { letter: 'C', text: 'Ділюся з обраними й дію разом' },
+                { letter: 'D', text: 'Обмежено відкриваю інформацію іншим' }
+            ], system: 'Система фіксує зміну твого пульсу.', system_vin: 'Система фіксує зміну твого пульсу.', system_vona: 'Система фіксує зміну твоєї реакції.', system_vony: 'Система фіксує зміну ваших показників.' },
+            { title: 'Пошкоджені архіви', text: 'Дані бункера неповні. Без втручання доступ буде заблокований.', opts: [
+                { letter: 'A', text: 'Відновлюю та дотримуюся інструкцій системи' },
+                { letter: 'B', text: 'Відновлюю, зберігаючи копію для себе' },
+                { letter: 'C', text: 'Видаляю нестабільні фрагменти' },
+                { letter: 'D', text: 'Відновлюю і передаю корисну інформацію іншим' }
+            ], system: 'Деякі файли після відновлення змінюють дату створення.' },
+            { title: 'Порушення протоколу', text: 'Хтось із команди порушив правила. Почались некласифіковані симптоми.\n\nТвої перші дії:', opts: [
+                { letter: 'A', text: 'Допомагаю постраждалим' },
+                { letter: 'B', text: 'Беру контроль над ситуацією' },
+                { letter: 'C', text: 'Шукаю відповідального' },
+                { letter: 'D', text: 'Спостерігаю та аналізую' }
+            ], system: 'Система реєструє затримку в ухваленні рішення.' },
+            { title: 'Контроль ресурсів', text: 'Ресурсів недостатньо для всіх.', opts: [
+                { letter: 'A', text: 'Перерозподіляю з пріоритетом для себе' },
+                { letter: 'B', text: 'Дію суворо за алгоритмами системи' },
+                { letter: 'C', text: 'Розподіляю між командою, виходячи з ситуації' },
+                { letter: 'D', text: 'Передаю контроль іншому' }
+            ], system: 'Один із секторів перестає виходити на звʼязок.' },
+            { title: 'Ціна порятунку', text: 'Рішення може врятувати більшість, але хтось ризикує.', opts: [
+                { letter: 'A', text: 'Беру ризик на себе' },
+                { letter: 'B', text: 'Передаю вибір групі' },
+                { letter: 'C', text: 'Рятую себе і обраних' },
+                { letter: 'D', text: 'Звертаюсь до системи або відкладаю дію' }
+            ], system: 'Система не гарантує результат.' },
+            { title: 'Відмова системи', text: 'Система видає критичну помилку. Потрібне ручне управління.', opts: [
+                { letter: 'A', text: 'Керую з власними корективами' },
+                { letter: 'B', text: 'Чітко дотримуюсь протоколів' },
+                { letter: 'C', text: 'Дію по ситуації' },
+                { letter: 'D', text: 'Відмовляюсь від управління' }
+            ], system: 'Відмова активує резервний сценарій.' },
+            { title: 'Розділення', text: 'Команду потрібно розділити. Звʼязок буде втрачено.', opts: [
+                { letter: 'A', text: 'Обираю найсильніших' },
+                { letter: 'B', text: 'Розподіляю випадково' },
+                { letter: 'C', text: 'Кожен обирає сам' },
+                { letter: 'D', text: 'Розподіляю з рівними шансами' }
+            ], system: 'Система не фіксує повернення однієї з груп.' },
+            { title: 'Обмежений час', text: 'Часу на порятунок майже не залишилось. Кожна хвилина підвищує ризик. Система повільно обробляє інформацію, щоб надати точні дані.', opts: [
+                { letter: 'A', text: 'Обходжу протокол – шанс врятуватись, з небезпечними наслідками' },
+                { letter: 'B', text: 'Швидко аналізую ситуацію і шукаю оптимальний шлях' },
+                { letter: 'C', text: 'Розподіляю завдання між групою' },
+                { letter: 'D', text: 'Чекаю точних даних і вказівок системи' }
+            ], system: 'Система змінює пріоритети.' }
+        ];
+
+        var answers = {};
+        var currentIdx = 0;
+        var glitchInterval = null;
+        var bunkerAudio = null;
+        var pronounForm = 'vony';
+
+        var INTRO_LAST = { vin: 'Тут немає правильних рішень. Але кожен твій крок має наслідки.', vona: 'Тут немає правильних рішень. Але кожна твоя дія має наслідки.', vony: 'Тут немає правильних рішень. Але кожен твій крок має наслідки.' };
+
+        function setPronoun(p) {
+            pronounForm = p;
+            document.querySelectorAll('.pronoun-btn').forEach(function(b) { b.classList.toggle('selected', b.getAttribute('data-pronoun') === p); });
+            var el = document.getElementById('intro-last-p');
+            if (el) el.textContent = INTRO_LAST[p] || INTRO_LAST.vony;
+        }
+
+        function stopBunkerSound() {
+            if (bunkerAudio) { bunkerAudio.pause(); bunkerAudio.currentTime = 0; bunkerAudio = null; }
+        }
+        function startBunkerSound() {
+            fetch('../audio_config.json').then(function(r) { return r.ok ? r.json() : Promise.reject(); }).then(function(c) {
+                var file = c && c['3'] ? String(c['3']).trim() : '';
+                if (!file) return;
+                bunkerAudio = new Audio('../assets/audio/' + file);
+                bunkerAudio.loop = true;
+                bunkerAudio.volume = 0.35;
+                bunkerAudio.play().catch(function() {});
+            }).catch(function() {});
+        }
+
+        function startTest() {
+            document.getElementById('intro-screen').style.display = 'none';
+            document.getElementById('quiz-screen').style.display = 'block';
+            currentIdx = 0;
+            answers = {};
+            answers._pronoun = pronounForm;
+            renderQ();
+            startBunkerSound();
+            if (glitchInterval) clearInterval(glitchInterval);
+            glitchInterval = setInterval(randomGlitch, 2500 + Math.random() * 2000);
+        }
+        window.addEventListener('beforeunload', stopBunkerSound);
+        window.addEventListener('pagehide', stopBunkerSound);
+        setPronoun('vony');
+
+        var CREEPY_MSGS = ['СИСТЕМА СПОСТЕРІГАЄ', 'ПОМИЛКА ДОСТУПУ', 'НЕ ВИХОДЬ', 'ДАНІ ПОШКОДЖЕНІ', 'ПІДТВЕРДИ СВОЄ ПРИСУТНІСТЬ', 'КОД НЕ ВІРНИЙ', 'ХТО ТИ', 'ПРОТОКОЛ НЕ ЗАВЕРШЕНО', 'ЗВ\'ЯЗОК ВТРАЧЕНО'];
+        var glitchActive = false;
+
+        function triggerShake() { if (glitchActive) return; document.body.classList.add('shake'); setTimeout(function() { document.body.classList.remove('shake'); }, 180); }
+        function triggerFlashRed() { if (glitchActive) return; document.body.classList.add('flash-red'); setTimeout(function() { document.body.classList.remove('flash-red'); }, 220); }
+        function triggerFlashGreen() { if (glitchActive) return; document.body.classList.add('flash-green'); setTimeout(function() { document.body.classList.remove('flash-green'); }, 140); }
+        function triggerWrapGlitch() {
+            var wrap = document.getElementById('test-wrap');
+            if (!wrap || glitchActive) return;
+            wrap.classList.add('glitch-burst');
+            setTimeout(function() { wrap.classList.remove('glitch-burst'); }, 220);
+        }
+        function showFlashMsg() {
+            var el = document.getElementById('flash-msg');
+            if (!el || glitchActive) return;
+            el.textContent = CREEPY_MSGS[Math.floor(Math.random() * CREEPY_MSGS.length)];
+            el.classList.remove('hide'); el.classList.add('show');
+            setTimeout(function() { el.classList.remove('show'); el.classList.add('hide'); setTimeout(function() { el.textContent = ''; el.classList.remove('hide'); }, 220); }, 180 + Math.random() * 120);
+        }
+        function randomGlitch() {
+            if (glitchActive || !document.getElementById('quiz-screen') || document.getElementById('quiz-screen').style.display === 'none') return;
+            var r = Math.random();
+            if (r < 0.08) triggerShake();
+            else if (r < 0.14) triggerFlashRed();
+            else if (r < 0.18) triggerFlashGreen();
+            else if (r < 0.26) triggerWrapGlitch();
+            else if (r < 0.32) showFlashMsg();
+        }
+
+        function renderQ() {
+            var q = QUESTIONS[currentIdx];
+            if (!q) return;
+            var container = document.getElementById('q-container');
+            var sysMsg = (q['system_' + pronounForm] != null ? q['system_' + pronounForm] : q.system);
+            var sysClass = (sysMsg && Math.random() < 0.4) ? ' system-msg creepy' : ' system-msg';
+            var sysHtml = sysMsg ? '<div class="' + sysClass.trim() + '" style="margin-top:16px; padding-top:12px; border-top:1px dashed var(--border);">' + escapeHtml(sysMsg) + '</div>' : '';
+            container.innerHTML = '<div class="q-block" id="q-block"><div class="q-num">ПИТАННЯ ' + (currentIdx + 1) + ' З ' + QUESTIONS.length + '</div>' +
+                '<div class="q-title" data-text="' + escapeHtml(q.title) + '">' + escapeHtml(q.title) + '</div>' +
+                '<div class="q-text">' + escapeHtml(q.text) + '</div>' +
+                '<div class="q-label">ОБЕРІТЬ ВАРІАНТ</div>' +
+                '<div class="options-list" id="options-list">' +
+                q.opts.map(function(o, i) {
+                    var sel = answers['q' + (currentIdx + 1)] === o.letter ? ' selected' : '';
+                    return '<button type="button" class="opt-btn' + sel + '" data-letter="' + o.letter + '" data-q="' + (currentIdx + 1) + '">' + o.letter + '. ' + escapeHtml(o.text) + '</button>';
+                }).join('') +
+                '</div>' + sysHtml + '</div>';
+            document.getElementById('btn-prev').disabled = currentIdx === 0;
+            document.getElementById('btn-next').textContent = currentIdx === QUESTIONS.length - 1 ? 'ЗАВЕРШИТИ' : 'ДАЛІ →';
+            if (Math.random() < 0.35) {
+                setTimeout(function() {
+                    var block = document.getElementById('q-block');
+                    var title = block && block.querySelector('.q-title');
+                    if (block) block.classList.add('glitch-q');
+                    if (title) { title.classList.add('glitch-text'); setTimeout(function() { title.classList.remove('glitch-text'); }, 200); }
+                    setTimeout(function() { if (block) block.classList.remove('glitch-q'); }, 280);
+                }, 80);
+            }
+            document.getElementById('options-list').addEventListener('click', function(e) {
+                var btn = e.target.closest('.opt-btn');
+                if (!btn) return;
+                if (Math.random() < 0.15) { btn.classList.add('glitch-opt'); setTimeout(function() { btn.classList.remove('glitch-opt'); }, 140); }
+                var letter = btn.getAttribute('data-letter');
+                var qNum = btn.getAttribute('data-q');
+                answers['q' + qNum] = letter;
+                container.querySelectorAll('.opt-btn').forEach(function(b) { b.classList.remove('selected'); });
+                btn.classList.add('selected');
+            });
+        }
+
+        function escapeHtml(s) {
+            if (s == null) return '';
+            var d = document.createElement('div');
+            d.textContent = s;
+            return d.innerHTML;
+        }
+
+        function prevQ() {
+            if (currentIdx <= 0) return;
+            currentIdx--;
+            renderQ();
+        }
+
+        function nextQ() {
+            if (currentIdx < QUESTIONS.length - 1) {
+                if (Math.random() < 0.2) triggerShake();
+                else if (Math.random() < 0.25) triggerWrapGlitch();
+                currentIdx++;
+                renderQ();
+                return;
+            }
+            if (Math.random() < 0.3) triggerFlashRed();
+            submitTest();
+        }
+
+        function submitTest() {
+            var code = getAccessCode();
+            if (!code) {
+                document.getElementById('quiz-screen').style.display = 'none';
+                document.getElementById('result-screen').style.display = 'block';
+                document.getElementById('result-desc').textContent = 'Увійдіть у кабінет з кодом доступу, щоб результати збереглись у медкарті.';
+                var backEl = document.getElementById('result-back');
+                if (backEl) backEl.href = 'profile.html';
+                return;
+            }
+            fetch('../save_bunker_test.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ access_code: code, answers: answers })
+            }).then(function(r) { return r.json();             }).then(function(data) {
+                if (glitchInterval) { clearInterval(glitchInterval); glitchInterval = null; }
+                document.getElementById('quiz-screen').style.display = 'none';
+                document.getElementById('result-screen').style.display = 'block';
+                var backEl = document.getElementById('result-back');
+                if (backEl && code) backEl.href = 'profile.html?code=' + encodeURIComponent(code);
+                if (data && data.ok) {
+                    document.getElementById('result-desc').textContent = 'Система фіксує зміну пульсу та затримки в ухваленні рішень. Результати збережено в медкарті.';
+                    var typeEl = document.getElementById('result-type');
+                    if (typeEl && data.result_type) {
+                        typeEl.textContent = 'Ваш тип: ' + data.result_type;
+                        typeEl.style.display = 'block';
+                    }
+                } else {
+                    document.getElementById('result-desc').textContent = (data && data.error) ? data.error : 'Помилка збереження. Спробуйте пізніше.';
+                    var typeEl = document.getElementById('result-type');
+                    if (typeEl) { typeEl.style.display = 'none'; typeEl.textContent = ''; }
+                }
+            }).catch(function() {
+                if (glitchInterval) { clearInterval(glitchInterval); glitchInterval = null; }
+                document.getElementById('quiz-screen').style.display = 'none';
+                document.getElementById('result-screen').style.display = 'block';
+                document.getElementById('result-desc').textContent = 'Помилка мережі. Результати не збережено.';
+                var typeEl = document.getElementById('result-type');
+                if (typeEl) { typeEl.style.display = 'none'; typeEl.textContent = ''; }
+            });
+        }
+    </script>
+</body>
+</html>

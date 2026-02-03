@@ -1,0 +1,16 @@
+{
+    "chapters": {
+        "ch1": "ambience.mp3",
+        "ch2": "ambience.mp3"
+    },
+    "factions": {
+        "OLYMPOS": "ambience_olympos.mp3",
+        "ORIGIN": "ambience_origin.mp3",
+        "THEMIS": "ambience_themis.mp3",
+        "MOIRAI": ""
+    },
+    "default_volume": 0.3,
+    "3": "3.mp3",
+    "4": "4.mp3",
+    "background_tracks": []
+}
