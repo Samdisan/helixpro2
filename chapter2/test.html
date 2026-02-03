@@ -83,7 +83,7 @@
         <div id="result-box">
             <div class="res-title" id="res-role">ROLE</div>
             <div class="res-desc" id="res-desc">...</div>
-            <a href="hub.html" style="display:inline-block; padding:15px 30px; background:transparent; border:2px solid var(--accent-gold); color:var(--accent-gold); text-decoration:none; text-transform:uppercase; font-family:'Cinzel', serif; font-weight:700; letter-spacing:2px; transition:0.3s; margin-top:20px;" onmouseover="this.style.background='rgba(255,215,0,0.1)'; this.style.boxShadow='0 0 20px rgba(255,215,0,0.3)'" onmouseout="this.style.background='transparent'; this.style.boxShadow='none'">ПРИЙНЯТИ ПРИЗНАЧЕННЯ</a>
+            <a id="result-btn" href="hub.html" style="display:inline-block; padding:15px 30px; background:transparent; border:2px solid var(--accent-gold); color:var(--accent-gold); text-decoration:none; text-transform:uppercase; font-family:'Cinzel', serif; font-weight:700; letter-spacing:2px; transition:0.3s; margin-top:20px;" onmouseover="this.style.background='rgba(255,215,0,0.1)'; this.style.boxShadow='0 0 20px rgba(255,215,0,0.3)'" onmouseout="this.style.background='transparent'; this.style.boxShadow='none'">ПРИЙНЯТИ ПРИЗНАЧЕННЯ</a>
         </div>
     </div>
 
@@ -189,13 +189,21 @@
 
             const params = new URLSearchParams(window.location.search);
             if (params.get('from') === 'register') {
+                // Зберігаємо результат для реєстрації
                 try {
                     sessionStorage.setItem('helix_kira_application', JSON.stringify({
                         type: role,
                         scores: { L: scores.L, H: scores.H, M: scores.M, C: scores.C }
                     }));
                 } catch (e) {}
-                window.location.href = 'register.html?step=2';
+                // Змінюємо кнопку на перехід до реєстрації (не автоматичний редірект)
+                const btn = document.getElementById('result-btn');
+                if (btn) {
+                    btn.href = 'register.html?step=2';
+                    btn.textContent = 'ПРОДОВЖИТИ РЕЄСТРАЦІЮ';
+                    btn.style.borderColor = '#0f0';
+                    btn.style.color = '#0f0';
+                }
                 return;
             }
 
